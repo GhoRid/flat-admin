@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap');
+@import 'tailwindcss';
+
+:root {
+  --font-sans:
+    'Noto Sans KR', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+}
+
+@theme {
+  --font-sans:
+    'Noto Sans KR', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+
+  /* breakpoints */
+  --breakpoint-tb: 28.125rem; /* 450px ~ 767px */
+  --breakpoint-lt: 48rem; /* 768px ~ 1279px */
+  --breakpoint-dt: 80rem; /* 1280px ~ */
+
+  /* ranges
+     base: 0px ~ 449px
+     tb: 450px ~ 767px
+     lt: 768px ~ 1279px
+     dt: 1280px ~
+  */
+
+  /* colors */
+  --color-app-main: #1c2e4a;
+  --color-app-white: #ffffff;
+  --color-app-black: #16181c;
+  --color-app-gray50: #f5f5f5;
+  --color-app-gray100: #eaeaea;
+  --color-app-gray300: #bcbcbc;
+  --color-app-gray500: #888888;
+  --color-app-blue: #5482ff;
+  --color-app-red: #ff5656;
+  --color-app-mint: #36dcb5;
+
+  /* font sizes */
+  --text-12: 0.75rem;
+  --text-12--line-height: 1;
+
+  --text-14: 0.875rem;
+  --text-14--line-height: 1;
+
+  --text-15: 0.9375rem;
+  --text-15--line-height: 1;
+
+  --text-16: 1rem;
+  --text-16--line-height: 1;
+
+  --text-18: 1.125rem;
+  --text-18--line-height: 1;
+
+  --text-20: 1.25rem;
+  --text-20--line-height: 1;
+
+  --text-24: 1.5rem;
+  --text-24--line-height: 1;
+}
+
+@layer base {
+  html,
+  body,
+  #app {
+    min-height: 100%;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1;
+    color: var(--color-app-black);
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  section {
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    outline: 0;
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus {
+    -webkit-text-fill-color: #333333;
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+    box-shadow: 0 0 0 1000px #ffffff inset;
+    caret-color: #333333;
+    transition: background-color 9999s ease-out 0s;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ul,
+  ol {
+    list-style: none;
+  }
+
+  table {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+}
