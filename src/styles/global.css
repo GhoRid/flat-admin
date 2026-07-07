@@ -25,16 +25,23 @@
   */
 
   /* colors */
-  --color-app-main: #1c2e4a;
+  --color-app-primary: #e0ff00;
+
   --color-app-white: #ffffff;
-  --color-app-black: #16181c;
+  --color-app-black: #191919;
+
   --color-app-gray50: #f5f5f5;
   --color-app-gray100: #eaeaea;
-  --color-app-gray300: #bcbcbc;
-  --color-app-gray500: #888888;
-  --color-app-blue: #5482ff;
-  --color-app-red: #ff5656;
+  --color-app-gray300: #c1c3c7;
+  --color-app-gray500: #82888e;
+
+  --color-app-blue: #4f84ff;
+
+  --color-app-red: #ff6e70;
+
+  --color-app-orange: #ff8a3d;
   --color-app-mint: #36dcb5;
+  --color-app-green: #05e741;
 
   /* font sizes */
   --text-12: 0.75rem;
@@ -89,7 +96,7 @@
     font-weight: 400;
     line-height: 1;
     color: var(--color-app-black);
-    background: #fff;
+    background: var(--color-app-white);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -135,10 +142,10 @@
   select:-webkit-autofill,
   select:-webkit-autofill:hover,
   select:-webkit-autofill:focus {
-    -webkit-text-fill-color: #333333;
-    -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
-    box-shadow: 0 0 0 1000px #ffffff inset;
-    caret-color: #333333;
+    -webkit-text-fill-color: var(--color-app-black);
+    -webkit-box-shadow: 0 0 0 1000px var(--color-app-white) inset;
+    box-shadow: 0 0 0 1000px var(--color-app-white) inset;
+    caret-color: var(--color-app-black);
     transition: background-color 9999s ease-out 0s;
   }
 

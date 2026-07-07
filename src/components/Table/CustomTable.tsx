@@ -1,6 +1,4 @@
 import React, { useMemo, useState } from "react";
-import styled, { css } from "styled-components";
-import { colors } from "../../styles/colors";
 import type { ColumnDef } from "../../types/shared.types";
 
 type Align = "left" | "center" | "right";
@@ -52,6 +50,21 @@ type CustomTableProps<T> = {
 
 const RIGHT_COL_W = 44; // px
 
+const toCssSize = (value: number | string) =>
+  typeof value === "number" ? `${value}px` : value;
+
+const getTextAlignClass = (align: Align) => {
+  if (align === "center") return "text-center";
+  if (align === "right") return "text-right";
+  return "text-left";
+};
+
+const getJustifyClass = (align: Align) => {
+  if (align === "center") return "justify-center";
+  if (align === "right") return "justify-end";
+  return "justify-start";
+};
+
 export default function CustomTable<T>({
   columns, // 데이터 항목 정의
   data, // 실제 데이터 배열
@@ -62,7 +75,7 @@ export default function CustomTable<T>({
   className,
 
   stickyHeader = true,
-  headerColor = colors.light_gray,
+  headerColor = "var(--color-app-gray50)",
   headerStyle,
   containerBorderVisible = true,
   borderVisible = true,
@@ -94,7 +107,6 @@ export default function CustomTable<T>({
     [columns, rightColumnId],
   );
 
-  // 왼쪽 "내용 영역" 그리드는 actions 제외
   const dataGridTemplate = useMemo(() => {
     return contentColumns
       .map((c) => {
@@ -118,7 +130,6 @@ export default function CustomTable<T>({
     const col = columns.find((c) => c.id === sort.id);
     if (!col || !col.sortable) return data;
 
-    // 정렬 값 추출기
     const getSortVal = (row: T) => {
       const v = col.sortValue?.(row);
 
@@ -162,34 +173,40 @@ export default function CustomTable<T>({
     if (col.sortable !== true) return;
 
     setSort((prev) => {
-      // ✅ 정렬 없음 -> (1)desc -> (2)asc -> (3)정렬 없음
       if (!prev || prev.id !== col.id) return { id: col.id, dir: "desc" };
       if (prev.dir === "desc") return { id: col.id, dir: "asc" };
       return null;
     });
   };
 
+  const contentGridStyle: React.CSSProperties = {
+    maxWidth: tableInnerMaxWidth,
+    gridTemplateColumns: dataGridTemplate,
+    columnGap: toCssSize(tableColumnGap),
+  };
+
   return (
-    <TableContainer
-      className={className}
-      $borderVisible={containerBorderVisible}
+    <div
+      className={`w-full overflow-hidden rounded-[10px] border ${
+        containerBorderVisible ? "border-app-gray100" : "border-transparent"
+      } ${className ?? ""}`}
     >
-      <Table
-        $minWidth={minTableWidth}
-        style={{ ["--data-cols" as any]: dataGridTemplate }}
+      <table
+        className="w-full table-fixed"
+        style={{ minWidth: toCssSize(minTableWidth) }}
       >
-        <Thead
-          $sticky={stickyHeader}
-          $headerColor={headerColor}
-        >
-          <Tr
-            $borderVisible={true}
-            style={headerStyle}
+        <thead className={`w-full ${stickyHeader ? "sticky top-0 z-[5]" : ""}`}>
+          <tr
+            className="border-b border-app-gray100"
+            style={{ backgroundColor: headerColor, ...headerStyle }}
           >
-            <HeaderContentTh style={headerStyle}>
-              <ContentGrid
-                $maxW={tableInnerMaxWidth}
-                $columnGap={tableColumnGap}
+            <th
+              className="sticky w-full p-0 text-left"
+              style={headerStyle}
+            >
+              <div
+                className="grid w-full items-center pr-[5px] pl-5"
+                style={contentGridStyle}
               >
                 {contentColumns.map((col) => {
                   const sortable = col.sortable === true;
@@ -198,57 +215,71 @@ export default function CustomTable<T>({
                   const headerAlign = (col.headerAlign ?? col.align ?? "left") as Align;
 
                   return (
-                    <HeaderCell
+                    <div
                       key={col.id}
-                      $align={headerAlign}
+                      className={`min-w-0 py-[15px] whitespace-nowrap ${getTextAlignClass(
+                        headerAlign,
+                      )}`}
                     >
-                      <HeaderButton
+                      <button
                         type="button"
                         onClick={() => sortable && onClickHeader(col)}
-                        $sortable={sortable}
-                        $active={active}
-                        $align={headerAlign}
-                        $padding={col.headerPadding}
+                        className={`inline-flex w-full items-center gap-1.5 bg-transparent text-14 font-medium text-app-gray500 ${
+                          sortable ? "cursor-pointer" : "cursor-default"
+                        } ${active ? "opacity-100" : "opacity-85"} ${getJustifyClass(
+                          headerAlign,
+                        )}`}
+                        style={{ padding: col.headerPadding ?? 0 }}
                       >
                         <span>{col.header}</span>
                         {sortable && (
                           <SortIcon
-                            $active={active}
-                            $dir={dir}
+                            active={active}
+                            dir={dir}
                           />
                         )}
-                      </HeaderButton>
-                    </HeaderCell>
+                      </button>
+                    </div>
                   );
                 })}
-              </ContentGrid>
-            </HeaderContentTh>
+              </div>
+            </th>
 
             {hasRight && (
-              <HeaderActionTh
+              <th
                 aria-label="actions"
-                $rightColumnWidth={rightColumnWidth}
-                style={headerStyle}
+                className="p-0"
+                style={{ width: toCssSize(rightColumnWidth), ...headerStyle }}
               />
             )}
-          </Tr>
-        </Thead>
+          </tr>
+        </thead>
 
-        <Tbody>
+        <tbody>
           {sortedData.length === 0 ? (
-            <Tr>
-              <EmptyTd colSpan={2}>{emptyText}</EmptyTd>
-            </Tr>
+            <tr>
+              <td
+                colSpan={2}
+                className="px-4 py-[18px] text-center text-app-gray500 opacity-60"
+              >
+                {emptyText}
+              </td>
+            </tr>
           ) : (
             sortedData.map((row, rowIndex) => {
               const rowClickable = !!onRowClick && (isRowClickable?.(row, rowIndex) ?? true);
 
               return (
-                <Tr
+                <tr
                   key={getKey(row, rowIndex)}
-                  $borderVisible={borderVisible}
-                  $clickable={rowClickable}
-                  $backgroundColor={rowBackgroundColor?.(row, rowIndex)}
+                  className={`transition-colors last:border-b-0 hover:bg-app-gray50 ${
+                    borderVisible ? "border-b border-app-gray100" : "border-b border-transparent"
+                  } ${
+                    rowClickable
+                      ? "cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-app-black [&_td]:cursor-pointer [&_td_*]:cursor-pointer"
+                      : ""
+                  }`}
+                  style={{ backgroundColor: rowBackgroundColor?.(row, rowIndex) }}
                   onClick={() => {
                     if (!rowClickable) return;
                     onRowClick?.(row, rowIndex);
@@ -261,21 +292,16 @@ export default function CustomTable<T>({
                       onRowClick?.(row, rowIndex);
                     }
                   }}
-                  aria-label={rowClickable ? "테이블 행 열기" : undefined} // ✅ 스크린리더용 (원하면 row값 넣어도 됨)
+                  aria-label={rowClickable ? "테이블 행 열기" : undefined}
                 >
-                  {/* ✅ 왼쪽 "내용"만 tableInnerMaxWidth 1400으로 묶임 */}
-                  <ContentTd>
-                    <ContentGrid
-                      $maxW={tableInnerMaxWidth}
-                      $columnGap={tableColumnGap}
+                  <td className="w-full p-0 align-middle">
+                    <div
+                      className="grid w-full items-center pr-[5px] pl-5"
+                      style={contentGridStyle}
                     >
                       {contentColumns.map((col) => {
-                        if (col.id === rightColumnId) return null;
-                        // columns에서 정의한 render / accessor 순으로 값 추출
-                        // col에서 render함수에 row데이터를 전달. render가 없으면 accessor로서 row에서 값 추출
                         const val =
                           col.render?.(row, rowIndex) ??
-                          // accessor가 함수면 실행, 아니면 key로 추출
                           (typeof col.accessor === "function"
                             ? col.accessor(row)
                             : col.accessor
@@ -283,252 +309,61 @@ export default function CustomTable<T>({
                               : "");
 
                         const title = col.title?.(row);
+                        const align = (col.align ?? "left") as Align;
 
                         return (
-                          <Cell
+                          <div
                             key={col.id}
-                            $align={(col.align ?? "left") as Align}
-                            $nowrap={!!col.nowrap}
-                            $padding={col.cellPadding}
-                            $overflowVisible={!!col.cellOverflowVisible}
+                            className={`flex min-h-[45px] min-w-0 items-center text-14 ${getTextAlignClass(
+                              align,
+                            )} ${col.cellOverflowVisible ? "overflow-visible" : "overflow-hidden"} ${
+                              col.nowrap && !col.cellOverflowVisible
+                                ? "truncate whitespace-nowrap"
+                                : ""
+                            }`}
+                            style={{ padding: col.cellPadding ?? "5px 0" }}
                             title={title}
                           >
                             {val}
-                          </Cell>
+                          </div>
                         );
                       })}
-                    </ContentGrid>
-                  </ContentTd>
+                    </div>
+                  </td>
 
                   {hasRight && (
-                    <RightTd onClick={(e) => e.stopPropagation()}>
-                      <RightCell>
+                    <td
+                      className="w-11 py-0 pr-3 pl-0 align-middle"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex h-full items-center justify-end">
                         {columns.find((c) => c.id === rightColumnId)?.render!(row, rowIndex)}
-                      </RightCell>
-                    </RightTd>
+                      </div>
+                    </td>
                   )}
-                </Tr>
+                </tr>
               );
             })
           )}
-        </Tbody>
-      </Table>
-    </TableContainer>
+        </tbody>
+      </table>
+    </div>
   );
 }
 
-const TableContainer = styled.div<{ $borderVisible: boolean }>`
-  width: 100%;
-  overflow: hidden;
-
-  border-radius: 10px;
-  border: 1px solid ${({ $borderVisible }) => ($borderVisible ? colors.gray : "transparent")};
-`;
-
-const Table = styled.table<{ $minWidth: number | string }>`
-  width: 100%;
-
-  min-width: ${({ $minWidth }) => (typeof $minWidth === "number" ? `${$minWidth}px` : $minWidth)};
-
-  table-layout: fixed;
-
-  /* 내부(왼쪽) 그리드 컬럼 템플릿 */
-  --data-cols: 1fr;
-`;
-
-const Thead = styled.thead<{ $sticky: boolean; $headerColor: string }>`
-  width: 100%;
-
-  ${({ $sticky }) =>
-    $sticky &&
-    css`
-      position: sticky;
-      top: 0;
-      z-index: 5;
-    `}
-
-  tr {
-    background-color: ${({ $headerColor }) => $headerColor ?? colors.light_gray};
-  }
-`;
-
-const Tbody = styled.tbody`
-  tr {
-    transition: background-color 0.2s ease-in-out;
-  }
-`;
-
-const Tr = styled.tr<{
-  $borderVisible?: boolean;
-  $clickable?: boolean;
-  $backgroundColor?: string;
-}>`
-  border-bottom: 1px solid ${({ $borderVisible }) => ($borderVisible ? colors.gray : "transparent")};
-  background-color: ${({ $backgroundColor }) => $backgroundColor ?? "transparent"};
-
-  tbody &:last-of-type {
-    border-bottom: none;
-  }
-
-  /* tbody 안에 있는 tr만 hover 적용 */
-  tbody &:hover:not(:has([data-row-action="true"]:hover)) {
-    background-color: ${colors.light_gray};
-  }
-
-  ${({ $clickable }) =>
-    $clickable &&
-    css`
-      tbody &,
-      tbody & td,
-      tbody & td * {
-        cursor: pointer !important;
-      }
-
-      tbody &:focus-visible {
-        outline: 2px solid ${colors.app_black};
-        outline-offset: -2px;
-      }
-    `}
-`;
-
-const HeaderContentTh = styled.th`
-  width: 100%;
-  padding: 0;
-  text-align: left;
-  position: sticky;
-`;
-
-const HeaderActionTh = styled.th<{ $rightColumnWidth: number | string }>`
-  width: ${({ $rightColumnWidth }) =>
-    typeof $rightColumnWidth === "number" ? `${$rightColumnWidth}px` : $rightColumnWidth};
-  padding: 0;
-`;
-
-const ContentTd = styled.td`
-  padding: 0;
-  vertical-align: middle;
-  width: 100%;
-`;
-
-const ContentGrid = styled.div<{ $maxW: number; $columnGap: number | string }>`
-  /* 왼쪽만 묶어서 폭 제한 */
-  max-width: ${({ $maxW }) => $maxW}px;
-  width: 100%;
-
-  padding: 0 5px 0 20px;
-
-  display: grid;
-  grid-template-columns: var(--data-cols);
-  column-gap: ${({ $columnGap }) =>
-    typeof $columnGap === "number" ? `${$columnGap}px` : $columnGap};
-  align-items: center;
-`;
-
-const HeaderCell = styled.div<{ $align: Align }>`
-  padding: 15px 0;
-  min-width: 0;
-
-  text-align: ${({ $align }) => $align};
-  white-space: nowrap;
-`;
-
-const HeaderButton = styled.button<{
-  $sortable: boolean;
-  $active: boolean;
-  $padding?: string;
-  $align: Align;
-}>`
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: ${({ $align }) =>
-    $align === "right" ? "flex-end" : $align === "center" ? "center" : "flex-start"};
-  gap: 6px;
-
-  background: transparent;
-  border: 0;
-  padding: ${({ $padding }) => $padding ?? "0"};
-
-  cursor: ${({ $sortable }) => ($sortable ? "pointer" : "default")};
-  opacity: ${({ $active }) => ($active ? 1 : 0.85)};
-
-  span {
-    font-size: 14px;
-    font-weight: 500;
-    color: ${colors.dark_gray};
-  }
-`;
-
-const SortIcon = styled.span<{ $dir?: SortDir; $active: boolean }>`
-  display: inline-flex;
-  flex-direction: column;
-  gap: 2px;
-  pointer-events: none;
-
-  &::before,
-  &::after {
-    content: "";
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-  }
-
-  /* ▲ (asc) */
-  &::before {
-    border-bottom: 6px solid ${colors.dark_gray};
-    opacity: ${({ $active, $dir }) => (!$active ? 0.25 : $dir === "asc" ? 0.9 : 0.25)};
-  }
-
-  /* ▼ (desc) */
-  &::after {
-    border-top: 6px solid ${colors.dark_gray};
-    opacity: ${({ $active, $dir }) => (!$active ? 0.25 : $dir === "desc" ? 0.9 : 0.25)};
-  }
-`;
-
-const Cell = styled.div<{
-  $align: Align;
-  $nowrap: boolean;
-  $padding?: string;
-  $overflowVisible: boolean;
-}>`
-  min-height: 45px;
-  padding: ${({ $padding }) => $padding ?? "5px 0"};
-  font-size: 14px;
-  text-align: ${({ $align }) => $align};
-
-  min-width: 0;
-  display: flex;
-  align-items: center;
-
-  overflow: ${({ $overflowVisible }) => ($overflowVisible ? "visible" : "hidden")};
-
-  ${({ $nowrap, $overflowVisible }) =>
-    $nowrap &&
-    !$overflowVisible &&
-    css`
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    `}
-`;
-
-const EmptyTd = styled.td`
-  padding: 18px 16px;
-  text-align: center;
-  color: ${colors.dark_gray};
-  opacity: 0.6;
-`;
-
-const RightTd = styled.td`
-  width: 44px;
-  padding: 0 12px 0 0;
-  vertical-align: middle;
-`;
-
-const RightCell = styled.div`
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-`;
+function SortIcon({ active, dir }: { active: boolean; dir?: SortDir }) {
+  return (
+    <span className="pointer-events-none inline-flex flex-col gap-0.5">
+      <span
+        className={`h-0 w-0 border-x-4 border-b-[6px] border-x-transparent border-b-app-gray500 ${
+          !active ? "opacity-25" : dir === "asc" ? "opacity-90" : "opacity-25"
+        }`}
+      />
+      <span
+        className={`h-0 w-0 border-x-4 border-t-[6px] border-x-transparent border-t-app-gray500 ${
+          !active ? "opacity-25" : dir === "desc" ? "opacity-90" : "opacity-25"
+        }`}
+      />
+    </span>
+  );
+}

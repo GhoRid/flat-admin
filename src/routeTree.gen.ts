@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthedLayoutRouteRouteImport } from './routes/_authedLayout/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginIndexRouteImport } from './routes/login/index'
+import { Route as AuthedLayoutMembersIndexRouteImport } from './routes/_authedLayout/members/index'
 import { Route as AuthedLayoutDashboardIndexRouteImport } from './routes/_authedLayout/dashboard/index'
 
 const AuthedLayoutRouteRoute = AuthedLayoutRouteRouteImport.update({
@@ -28,6 +29,12 @@ const LoginIndexRoute = LoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedLayoutMembersIndexRoute =
+  AuthedLayoutMembersIndexRouteImport.update({
+    id: '/members/',
+    path: '/members/',
+    getParentRoute: () => AuthedLayoutRouteRoute,
+  } as any)
 const AuthedLayoutDashboardIndexRoute =
   AuthedLayoutDashboardIndexRouteImport.update({
     id: '/dashboard/',
@@ -39,11 +46,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login/': typeof LoginIndexRoute
   '/dashboard/': typeof AuthedLayoutDashboardIndexRoute
+  '/members/': typeof AuthedLayoutMembersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginIndexRoute
   '/dashboard': typeof AuthedLayoutDashboardIndexRoute
+  '/members': typeof AuthedLayoutMembersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -51,18 +60,20 @@ export interface FileRoutesById {
   '/_authedLayout': typeof AuthedLayoutRouteRouteWithChildren
   '/login/': typeof LoginIndexRoute
   '/_authedLayout/dashboard/': typeof AuthedLayoutDashboardIndexRoute
+  '/_authedLayout/members/': typeof AuthedLayoutMembersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login/' | '/dashboard/'
+  fullPaths: '/' | '/login/' | '/dashboard/' | '/members/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard'
+  to: '/' | '/login' | '/dashboard' | '/members'
   id:
     | '__root__'
     | '/'
     | '/_authedLayout'
     | '/login/'
     | '/_authedLayout/dashboard/'
+    | '/_authedLayout/members/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,6 +105,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authedLayout/members/': {
+      id: '/_authedLayout/members/'
+      path: '/members'
+      fullPath: '/members/'
+      preLoaderRoute: typeof AuthedLayoutMembersIndexRouteImport
+      parentRoute: typeof AuthedLayoutRouteRoute
+    }
     '/_authedLayout/dashboard/': {
       id: '/_authedLayout/dashboard/'
       path: '/dashboard'
@@ -106,10 +124,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthedLayoutRouteRouteChildren {
   AuthedLayoutDashboardIndexRoute: typeof AuthedLayoutDashboardIndexRoute
+  AuthedLayoutMembersIndexRoute: typeof AuthedLayoutMembersIndexRoute
 }
 
 const AuthedLayoutRouteRouteChildren: AuthedLayoutRouteRouteChildren = {
   AuthedLayoutDashboardIndexRoute: AuthedLayoutDashboardIndexRoute,
+  AuthedLayoutMembersIndexRoute: AuthedLayoutMembersIndexRoute,
 }
 
 const AuthedLayoutRouteRouteWithChildren =
