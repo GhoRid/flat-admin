@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthedLayoutRouteRouteImport } from './routes/_authedLayout/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginIndexRouteImport } from './routes/login/index'
+import { Route as AuthedLayoutSignupRequestsIndexRouteImport } from './routes/_authedLayout/signup-requests/index'
 import { Route as AuthedLayoutMembersIndexRouteImport } from './routes/_authedLayout/members/index'
 import { Route as AuthedLayoutDashboardIndexRouteImport } from './routes/_authedLayout/dashboard/index'
 
@@ -29,6 +30,12 @@ const LoginIndexRoute = LoginIndexRouteImport.update({
   path: '/login/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedLayoutSignupRequestsIndexRoute =
+  AuthedLayoutSignupRequestsIndexRouteImport.update({
+    id: '/signup-requests/',
+    path: '/signup-requests/',
+    getParentRoute: () => AuthedLayoutRouteRoute,
+  } as any)
 const AuthedLayoutMembersIndexRoute =
   AuthedLayoutMembersIndexRouteImport.update({
     id: '/members/',
@@ -47,12 +54,14 @@ export interface FileRoutesByFullPath {
   '/login/': typeof LoginIndexRoute
   '/dashboard/': typeof AuthedLayoutDashboardIndexRoute
   '/members/': typeof AuthedLayoutMembersIndexRoute
+  '/signup-requests/': typeof AuthedLayoutSignupRequestsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginIndexRoute
   '/dashboard': typeof AuthedLayoutDashboardIndexRoute
   '/members': typeof AuthedLayoutMembersIndexRoute
+  '/signup-requests': typeof AuthedLayoutSignupRequestsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -61,12 +70,13 @@ export interface FileRoutesById {
   '/login/': typeof LoginIndexRoute
   '/_authedLayout/dashboard/': typeof AuthedLayoutDashboardIndexRoute
   '/_authedLayout/members/': typeof AuthedLayoutMembersIndexRoute
+  '/_authedLayout/signup-requests/': typeof AuthedLayoutSignupRequestsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login/' | '/dashboard/' | '/members/'
+  fullPaths: '/' | '/login/' | '/dashboard/' | '/members/' | '/signup-requests/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/dashboard' | '/members'
+  to: '/' | '/login' | '/dashboard' | '/members' | '/signup-requests'
   id:
     | '__root__'
     | '/'
@@ -74,6 +84,7 @@ export interface FileRouteTypes {
     | '/login/'
     | '/_authedLayout/dashboard/'
     | '/_authedLayout/members/'
+    | '/_authedLayout/signup-requests/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -105,6 +116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authedLayout/signup-requests/': {
+      id: '/_authedLayout/signup-requests/'
+      path: '/signup-requests'
+      fullPath: '/signup-requests/'
+      preLoaderRoute: typeof AuthedLayoutSignupRequestsIndexRouteImport
+      parentRoute: typeof AuthedLayoutRouteRoute
+    }
     '/_authedLayout/members/': {
       id: '/_authedLayout/members/'
       path: '/members'
@@ -125,11 +143,13 @@ declare module '@tanstack/react-router' {
 interface AuthedLayoutRouteRouteChildren {
   AuthedLayoutDashboardIndexRoute: typeof AuthedLayoutDashboardIndexRoute
   AuthedLayoutMembersIndexRoute: typeof AuthedLayoutMembersIndexRoute
+  AuthedLayoutSignupRequestsIndexRoute: typeof AuthedLayoutSignupRequestsIndexRoute
 }
 
 const AuthedLayoutRouteRouteChildren: AuthedLayoutRouteRouteChildren = {
   AuthedLayoutDashboardIndexRoute: AuthedLayoutDashboardIndexRoute,
   AuthedLayoutMembersIndexRoute: AuthedLayoutMembersIndexRoute,
+  AuthedLayoutSignupRequestsIndexRoute: AuthedLayoutSignupRequestsIndexRoute,
 }
 
 const AuthedLayoutRouteRouteWithChildren =

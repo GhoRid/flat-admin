@@ -1,6 +1,6 @@
 import FilterDropdown from '#/components/FilterDropdown'
+import TableSearchBar from '#/components/SearchBar'
 import CustomTable from '#/components/Table/CustomTable'
-import TableSearchBar from '#/components/Table/TableSearchBar'
 import type { ColumnDef } from '#/types/shared.types'
 import { createFileRoute } from '@tanstack/react-router'
 
