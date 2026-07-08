@@ -13,11 +13,15 @@ export const Route = createFileRoute(
   component: RouteComponent,
 })
 
+type EditableStepId = 'kakao-channel' | 'toss-place' | 'toss-payments'
+
 function RouteComponent() {
   const [isSubmitted, setIsSubmitted] = useState(false)
-  const [activeStepId, setActiveStepId] = useState<string | null>(null)
+  const [memo, setMemo] = useState('')
+  const [activeStepId, setActiveStepId] = useState<EditableStepId | null>(null)
+
   const [stepStatuses, setStepStatuses] = useState<
-    Record<'kakao-channel' | 'toss-place' | 'toss-payments', StepStatus>
+    Record<EditableStepId, StepStatus>
   >({
     'kakao-channel': 'progress',
     'toss-place': 'before',
@@ -115,89 +119,103 @@ function RouteComponent() {
     // businessLicenseFile.file
     // bankbookCopyFile.file
     // etcFile.file
+    // memo
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <BreadcrumbNav
-        items={[{ label: '가입 신청 관리' }, { label: '신청 상세' }]}
-      />
+    <>
+      <div className="flex flex-col gap-6 p-6">
+        <BreadcrumbNav
+          items={[{ label: '가입 신청 관리' }, { label: '신청 상세' }]}
+        />
 
-      <div className="mx-auto flex w-full max-w-200 flex-col gap-8">
-        <RequestInfoCard />
+        <div className="mx-auto flex w-full max-w-200 flex-col gap-8">
+          <RequestInfoCard />
 
-        <div className="flex flex-col gap-4">
-          <p className="text-14 font-medium text-app-gray500">제출 서류</p>
+          <div className="flex flex-col gap-4">
+            <p className="text-14 font-medium text-app-gray500">제출 서류</p>
 
-          <div className="flex flex-col gap-2">
-            <UploadField
-              value={businessLicenseFile}
-              label="사업자등록증"
-              required
-              onChange={updateFile(setBusinessLicenseFile)}
-              onDragChange={updateDragging(setBusinessLicenseFile)}
-            />
-
-            <UploadField
-              value={bankbookCopyFile}
-              label="통장 사본"
-              required
-              onChange={updateFile(setBankbookCopyFile)}
-              onDragChange={updateDragging(setBankbookCopyFile)}
-            />
-
-            <div className="my-2 w-full border-t border-app-gray100" />
-
-            <UploadField
-              value={etcFile}
-              onChange={updateFile(setEtcFile)}
-              onDragChange={updateDragging(setEtcFile)}
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <p className="text-14 font-medium text-app-gray500">
-            승인 진행 체크리스트
-          </p>
-
-          <div className="flex flex-col gap-2">
-            {checkListItems.map((item) => (
-              <CheckListCard
-                key={item.id}
-                title={item.title}
-                status={item.status}
-                onEditClick={item.onEditClick}
+            <div className="flex flex-col gap-2">
+              <UploadField
+                value={businessLicenseFile}
+                label="사업자등록증"
+                required
+                onChange={updateFile(setBusinessLicenseFile)}
+                onDragChange={updateDragging(setBusinessLicenseFile)}
               />
-            ))}
-          </div>
-        </div>
 
-        <div className="flex justify-end">
-          <button
-            type="button"
-            className="h-11 rounded-[10px] bg-app-primary px-6 text-14 font-medium text-app-black"
-            onClick={handleSubmit}
-          >
-            저장하기
-          </button>
+              <UploadField
+                value={bankbookCopyFile}
+                label="통장 사본"
+                required
+                onChange={updateFile(setBankbookCopyFile)}
+                onDragChange={updateDragging(setBankbookCopyFile)}
+              />
+
+              <div className="my-2 w-full border-t border-app-gray100" />
+
+              <UploadField
+                value={etcFile}
+                onChange={updateFile(setEtcFile)}
+                onDragChange={updateDragging(setEtcFile)}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <p className="text-14 font-medium text-app-gray500">
+              승인 진행 체크리스트
+            </p>
+
+            <div className="flex flex-col gap-2">
+              {checkListItems.map((item) => (
+                <CheckListCard
+                  key={item.id}
+                  title={item.title}
+                  status={item.status}
+                  onEditClick={item.onEditClick}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <p className="text-14 font-medium text-app-gray500">비고</p>
+
+            <textarea
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+              placeholder="특이 사항을 입력해주세요."
+              className="h-20 w-full resize-none whitespace-pre-wrap rounded-[10px] border border-app-gray100 bg-white p-4 text-14 leading-normal text-app-black outline-none placeholder:text-app-gray300 focus:border-app-black"
+            />
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="button"
+              className="h-11 rounded-[10px] bg-app-primary px-6 text-14 font-medium text-app-black"
+              onClick={handleSubmit}
+            >
+              저장하기
+            </button>
+          </div>
         </div>
       </div>
 
-      {activeStepItem && activeStepItem.id !== 'branch-info' && (
+      {activeStepItem && activeStepId && (
         <StepModal
           isOpen
           title={activeStepItem.title}
-          status={activeStepItem.status}
+          status={stepStatuses[activeStepId]}
           onClose={() => setActiveStepId(null)}
           onStatusChange={(status) => {
             setStepStatuses((prev) => ({
               ...prev,
-              [activeStepItem.id]: status,
+              [activeStepId]: status,
             }))
           }}
         />
       )}
-    </div>
+    </>
   )
 }
