@@ -2,9 +2,9 @@ import '#/styles/global.css'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import ReactDOM from 'react-dom/client'
 
-// import { authStore } from "./auth/authStore";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { authStore } from './auth/authStore'
+import Loading from './components/Loading'
 import { routeTree } from './routeTree.gen'
 
 export const queryClient = new QueryClient({
@@ -18,11 +18,10 @@ export const queryClient = new QueryClient({
 // Create a new router instance
 const router = createRouter({
   routeTree,
-  scrollRestoration: true,
-  scrollToTopSelectors: ['#main-scrollable-area'],
+  defaultPendingComponent: Loading,
   context: {
-    auth: authStore,
-    queryClient,
+    auth: undefined! as typeof authStore,
+    queryClient: undefined! as typeof queryClient,
   },
 })
 
@@ -43,7 +42,7 @@ if (!rootElement.innerHTML) {
       <QueryClientProvider client={queryClient}>
         <RouterProvider
           router={router}
-          // context={{ auth: authStore, queryClient }}
+          context={{ auth: authStore, queryClient }}
         />
       </QueryClientProvider>
     </>,

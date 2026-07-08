@@ -1,10 +1,21 @@
+import { fetchUserList } from '#/apis/api/user/user'
 import FilterDropdown from '#/components/FilterDropdown'
 import TableSearchBar from '#/components/SearchBar'
 import CustomTable from '#/components/Table/CustomTable'
 import type { ColumnDef } from '#/types/shared.types'
+import { queryOptions } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
+const fetchUserListQueryOptions = () =>
+  queryOptions({
+    queryKey: ['userList'],
+    queryFn: async () => fetchUserList(),
+    select: (res) => res.data,
+  })
+
 export const Route = createFileRoute('/_authedLayout/members/')({
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(fetchUserListQueryOptions()),
   component: RouteComponent,
 })
 

@@ -1,10 +1,10 @@
+import type { LoginAPIRequest } from '@/apis/api/auth/auth.dto'
 import CheckIcon from '@svgs/common/Check.svg?react'
 import DeleteIcon from '@svgs/common/Delete.svg?react'
 import HideIcon from '@svgs/common/Hide.svg?react'
 import ShownHideIcon from '@svgs/common/ShowHide.svg?react'
 import { useState } from 'react'
 import { useFormContext } from 'react-hook-form'
-// import type { any } from "../../../apis/api/auth/auth.dto";
 
 // const ERROR_MESSAGES = {
 //   REQUIRED: "로그인 정보를 입력해 주세요.",
@@ -17,7 +17,7 @@ type LoginFormProps = {
   clearServerError?: () => void
   keepLogin: boolean
   setKeepLogin: (keepLogin: boolean) => void
-  onSubmit: (payload: any) => void | Promise<void>
+  onSubmit: (payload: LoginAPIRequest) => void | Promise<void>
 }
 
 export default function LoginForm({
@@ -34,7 +34,7 @@ export default function LoginForm({
     handleSubmit,
     setValue,
     formState: { errors, isValid, isSubmitting, touchedFields, submitCount },
-  } = useFormContext<any>()
+  } = useFormContext<LoginAPIRequest>()
 
   const showEmailError =
     (touchedFields.email || submitCount > 0) && errors.email?.message
@@ -169,7 +169,7 @@ export default function LoginForm({
       </div>
 
       <button
-        className="mt-2 h-[60px] w-full rounded-2xl bg-app-main text-18 font-semibold text-app-white transition-colors duration-150 disabled:cursor-not-allowed disabled:bg-app-gray100 disabled:text-app-black"
+        className="mt-2 h-[60px] w-full rounded-2xl bg-app-main text-18 font-semibold bg-app-primary text-app-black transition-colors duration-150 disabled:cursor-not-allowed disabled:bg-app-gray100 disabled:text-app-black"
         type="submit"
         disabled={isSubmitDisabled}
       >

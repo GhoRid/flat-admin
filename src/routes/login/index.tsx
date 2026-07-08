@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
-// import { login } from "../../apis/api/auth/auth";
-// import type { LoginAPIRequest } from "../../apis/api/auth/auth.dto";
-// import { authStore } from "../../auth/authStore";
+import { login } from '@/apis/api/auth/auth'
+import type { LoginAPIRequest } from '@/apis/api/auth/auth.dto'
+import { authStore } from '@/auth/authStore'
 import { useMutation } from '@tanstack/react-query'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import type { AxiosError } from 'axios'
+import { useState } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import LoginForm from './-components/LoginForm'
 import LoginLogoSection from './-components/LoginLogoSection'
@@ -26,10 +27,7 @@ function LoginPage() {
 
   const navigate = useNavigate()
 
-  const method = useForm<
-    // LoginAPIRequest
-    any
-  >({
+  const method = useForm<LoginAPIRequest>({
     mode: 'onSubmit',
     defaultValues: {
       email: '',
@@ -39,36 +37,29 @@ function LoginPage() {
 
   const loginMutation = useMutation({
     mutationKey: ['login'],
-    mutationFn: async (
-      values: // LoginAPIRequest
-      any,
-    ) => {},
-    // login({
-    //   email: values.email,
-    //   password: values.password,
-    // }),
-    // onSuccess: (res) => {
-    //   const { jwt: accessToken, refreshToken } = res.data;
+    mutationFn: (values: LoginAPIRequest) =>
+      login({
+        email: values.email,
+        password: values.password,
+      }),
+    onSuccess: (res) => {
+      const { jwt: accessToken, refreshToken } = res.data
 
-    //   authStore.saveTokens(accessToken, refreshToken, keepLogin);
-    //   navigate({ to: "/", replace: true });
-    // },
-    // onError: (error: AxiosError) => {
-    //   console.error("Login error:", error);
-    //   setErrorKey("UNKNOWN");
-    // },
+      authStore.saveTokens(accessToken, refreshToken, keepLogin)
+      navigate({ to: '/', replace: true })
+    },
+    onError: (error: AxiosError) => {
+      setErrorKey(error.response?.status === 401 ? 'INVALID' : 'UNKNOWN')
+    },
   })
 
-  const onSubmit = async (
-    values: // LoginAPIRequest
-    any,
-  ) => {
+  const onSubmit = async (values: LoginAPIRequest) => {
     await loginMutation.mutateAsync(values)
   }
 
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center gap-5 overflow-hidden bg-app-white">
-      <div className="flex w-full max-w-[480px] flex-col items-stretch rounded-[10px] border border-app-gray100 bg-app-white p-10">
+      <div className="flex w-full max-w-120 flex-col items-stretch rounded-[10px] border border-app-gray100 bg-app-white p-10">
         <LoginLogoSection />
 
         <FormProvider {...method}>
