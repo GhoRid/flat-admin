@@ -1,4 +1,5 @@
 import FileIcon from '@svgs/common/File.svg?react'
+import { Download, Eye, Trash2 } from 'lucide-react'
 import type { ChangeEvent, DragEvent } from 'react'
 import { useRef } from 'react'
 
@@ -80,13 +81,14 @@ export default function UploadField({
     e.stopPropagation()
 
     onDragChange(false)
-    setFile(e.dataTransfer.files?.[0])
+    setFile(e.dataTransfer.files[0])
   }
 
   const requiredError =
     required && !value.file ? `${label} 파일을 업로드해 주세요.` : ''
 
   const error = value.error || requiredError
+  const hasFile = Boolean(value.file && !error)
 
   const fileText = error
     ? error
@@ -95,6 +97,25 @@ export default function UploadField({
       : label
         ? `${label} 파일이 존재하지 않습니다.`
         : '파일을 드래그하여 업로드하거나 파일을 선택해 주세요.'
+
+  const handlePreview = () => {
+    if (!value.file) return
+
+    const url = URL.createObjectURL(value.file)
+    window.open(url, '_blank', 'noopener,noreferrer')
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+
+  const handleDownload = () => {
+    if (!value.file) return
+
+    const url = URL.createObjectURL(value.file)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = value.file.name
+    link.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -128,13 +149,42 @@ export default function UploadField({
           {fileText}
         </span>
 
-        <button
-          type="button"
-          className="mr-4 h-7 rounded-[10px] border border-app-gray100 bg-white px-2 text-sm text-app-gray500"
-          onClick={() => inputRef.current?.click()}
-        >
-          파일 선택
-        </button>
+        {hasFile ? (
+          <div className="mr-4 flex items-center gap-2">
+            <button
+              type="button"
+              className="flex h-7 items-center gap-1 rounded-[10px] border border-app-gray100 bg-white px-2 text-sm text-app-gray500"
+              onClick={handlePreview}
+            >
+              <Eye size={14} aria-hidden />
+              미리보기
+            </button>
+            <button
+              type="button"
+              className="flex h-7 items-center gap-1 rounded-[10px] border border-app-gray100 bg-white px-2 text-sm text-app-gray500"
+              onClick={handleDownload}
+            >
+              <Download size={14} aria-hidden />
+              다운로드
+            </button>
+            <button
+              type="button"
+              className="flex size-7 items-center justify-center rounded-[10px] border border-app-gray100 bg-white text-app-gray500"
+              aria-label="파일 삭제"
+              onClick={() => onChange(null)}
+            >
+              <Trash2 size={16} aria-hidden />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="mr-4 h-7 rounded-[10px] border border-app-gray100 bg-white px-2 text-sm text-app-gray500"
+            onClick={() => inputRef.current?.click()}
+          >
+            파일 선택
+          </button>
+        )}
       </div>
 
       {/* {value.error && (

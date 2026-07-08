@@ -38,7 +38,7 @@ export default function CustomBaseModal({
       ariaHideApp={false}
       contentRef={contentRef}
       className={cn(
-        'absolute left-1/2 top-1/2 z-[99999999999] rounded-[10px] bg-app-white shadow-[0_2px_20px_rgba(0,0,0,0.03),0_2px_8px_rgba(0,0,0,0.08)] outline-none',
+        'absolute left-1/2 top-1/2 z-99999999999 rounded-[10px] bg-app-white shadow-[0_2px_20px_rgba(0,0,0,0.03),0_2px_8px_rgba(0,0,0,0.08)] outline-none',
         animated
           ? cn(
               'opacity-0 translate-x-[-50%] translate-y-[-48%] scale-[0.98]',

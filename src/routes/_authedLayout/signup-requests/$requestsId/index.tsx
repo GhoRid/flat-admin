@@ -2,7 +2,9 @@ import BreadcrumbNav from '#/components/BreadcrumbNav'
 import { createFileRoute } from '@tanstack/react-router'
 import type { Dispatch, SetStateAction } from 'react'
 import { useState } from 'react'
+import CheckListCard, { type CheckListItem } from './-components/CheckListCard'
 import RequestInfoCard from './-components/RequestInfoCard'
+import StepModal, { type StepStatus } from './-components/StepModal'
 import UploadField, { type UploadState } from './-components/UploadField'
 
 export const Route = createFileRoute(
@@ -13,6 +15,14 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [activeStepId, setActiveStepId] = useState<string | null>(null)
+  const [stepStatuses, setStepStatuses] = useState<
+    Record<'kakao-channel' | 'toss-place' | 'toss-payments', StepStatus>
+  >({
+    'kakao-channel': 'progress',
+    'toss-place': 'before',
+    'toss-payments': 'before',
+  })
 
   const [businessLicenseFile, setBusinessLicenseFile] = useState<UploadState>({
     file: null,
@@ -31,6 +41,43 @@ function RouteComponent() {
     error: '',
     isDragging: false,
   })
+
+  const checkListItems = [
+    {
+      id: 'branch-info',
+      title: '지점 정보 확인',
+      status: 'done',
+      onEditClick: () => {
+        console.log('지점 정보 확인 수정')
+      },
+    },
+    {
+      id: 'kakao-channel',
+      title: '알림톡 개설',
+      status: stepStatuses['kakao-channel'],
+      onEditClick: () => {
+        setActiveStepId('kakao-channel')
+      },
+    },
+    {
+      id: 'toss-place',
+      title: 'Toss Place 등록',
+      status: stepStatuses['toss-place'],
+      onEditClick: () => {
+        setActiveStepId('toss-place')
+      },
+    },
+    {
+      id: 'toss-payments',
+      title: 'Toss Payments 등록',
+      status: stepStatuses['toss-payments'],
+      onEditClick: () => {
+        setActiveStepId('toss-payments')
+      },
+    },
+  ] satisfies CheckListItem[]
+
+  const activeStepItem = checkListItems.find((item) => item.id === activeStepId)
 
   const updateFile =
     (setter: Dispatch<SetStateAction<UploadState>>) =>
@@ -114,23 +161,43 @@ function RouteComponent() {
             승인 진행 체크리스트
           </p>
 
-          <div className="rounded-[10px] border border-app-gray100 bg-white p-5">
-            <p className="text-14 text-app-gray500">
-              승인 전 제출 서류와 신청 정보를 확인해 주세요.
-            </p>
+          <div className="flex flex-col gap-2">
+            {checkListItems.map((item) => (
+              <CheckListCard
+                key={item.id}
+                title={item.title}
+                status={item.status}
+                onEditClick={item.onEditClick}
+              />
+            ))}
           </div>
         </div>
 
         <div className="flex justify-end">
           <button
             type="button"
-            className="h-11 rounded-[10px] bg-app-primary px-6 text-14 font-medium text-white"
+            className="h-11 rounded-[10px] bg-app-primary px-6 text-14 font-medium text-app-black"
             onClick={handleSubmit}
           >
-            승인하기
+            저장하기
           </button>
         </div>
       </div>
+
+      {activeStepItem && activeStepItem.id !== 'branch-info' && (
+        <StepModal
+          isOpen
+          title={activeStepItem.title}
+          status={activeStepItem.status}
+          onClose={() => setActiveStepId(null)}
+          onStatusChange={(status) => {
+            setStepStatuses((prev) => ({
+              ...prev,
+              [activeStepItem.id]: status,
+            }))
+          }}
+        />
+      )}
     </div>
   )
 }
