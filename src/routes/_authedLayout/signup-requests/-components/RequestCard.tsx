@@ -69,6 +69,10 @@ export default function RequestCard({ request }: RequestCardProps) {
     <button
       type="button"
       className="flex w-full items-center justify-between rounded-xl border border-app-gray100 bg-white p-6 text-left"
+
+      onClick={() => {
+        window.location.href = `/signup-requests/${request.id}`
+      }}
     >
       <div className="min-w-0">
         <h4 className="text-16 font-medium text-app-black">
