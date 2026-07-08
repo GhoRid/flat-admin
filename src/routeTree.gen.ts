@@ -16,6 +16,7 @@ import { Route as AuthedLayoutSignupRequestsIndexRouteImport } from './routes/_a
 import { Route as AuthedLayoutMembersIndexRouteImport } from './routes/_authedLayout/members/index'
 import { Route as AuthedLayoutDashboardIndexRouteImport } from './routes/_authedLayout/dashboard/index'
 import { Route as AuthedLayoutSignupRequestsRequestsIdIndexRouteImport } from './routes/_authedLayout/signup-requests/$requestsId/index'
+import { Route as AuthedLayoutSignupRequestsRequestsIdCheckInfoIndexRouteImport } from './routes/_authedLayout/signup-requests/$requestsId/check-Info/index'
 
 const AuthedLayoutRouteRoute = AuthedLayoutRouteRouteImport.update({
   id: '/_authedLayout',
@@ -55,6 +56,12 @@ const AuthedLayoutSignupRequestsRequestsIdIndexRoute =
     path: '/signup-requests/$requestsId/',
     getParentRoute: () => AuthedLayoutRouteRoute,
   } as any)
+const AuthedLayoutSignupRequestsRequestsIdCheckInfoIndexRoute =
+  AuthedLayoutSignupRequestsRequestsIdCheckInfoIndexRouteImport.update({
+    id: '/signup-requests/$requestsId/check-Info/',
+    path: '/signup-requests/$requestsId/check-Info/',
+    getParentRoute: () => AuthedLayoutRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -63,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/members/': typeof AuthedLayoutMembersIndexRoute
   '/signup-requests/': typeof AuthedLayoutSignupRequestsIndexRoute
   '/signup-requests/$requestsId/': typeof AuthedLayoutSignupRequestsRequestsIdIndexRoute
+  '/signup-requests/$requestsId/check-Info/': typeof AuthedLayoutSignupRequestsRequestsIdCheckInfoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -71,6 +79,7 @@ export interface FileRoutesByTo {
   '/members': typeof AuthedLayoutMembersIndexRoute
   '/signup-requests': typeof AuthedLayoutSignupRequestsIndexRoute
   '/signup-requests/$requestsId': typeof AuthedLayoutSignupRequestsRequestsIdIndexRoute
+  '/signup-requests/$requestsId/check-Info': typeof AuthedLayoutSignupRequestsRequestsIdCheckInfoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -81,6 +90,7 @@ export interface FileRoutesById {
   '/_authedLayout/members/': typeof AuthedLayoutMembersIndexRoute
   '/_authedLayout/signup-requests/': typeof AuthedLayoutSignupRequestsIndexRoute
   '/_authedLayout/signup-requests/$requestsId/': typeof AuthedLayoutSignupRequestsRequestsIdIndexRoute
+  '/_authedLayout/signup-requests/$requestsId/check-Info/': typeof AuthedLayoutSignupRequestsRequestsIdCheckInfoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +101,7 @@ export interface FileRouteTypes {
     | '/members/'
     | '/signup-requests/'
     | '/signup-requests/$requestsId/'
+    | '/signup-requests/$requestsId/check-Info/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -99,6 +110,7 @@ export interface FileRouteTypes {
     | '/members'
     | '/signup-requests'
     | '/signup-requests/$requestsId'
+    | '/signup-requests/$requestsId/check-Info'
   id:
     | '__root__'
     | '/'
@@ -108,6 +120,7 @@ export interface FileRouteTypes {
     | '/_authedLayout/members/'
     | '/_authedLayout/signup-requests/'
     | '/_authedLayout/signup-requests/$requestsId/'
+    | '/_authedLayout/signup-requests/$requestsId/check-Info/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -167,6 +180,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedLayoutSignupRequestsRequestsIdIndexRouteImport
       parentRoute: typeof AuthedLayoutRouteRoute
     }
+    '/_authedLayout/signup-requests/$requestsId/check-Info/': {
+      id: '/_authedLayout/signup-requests/$requestsId/check-Info/'
+      path: '/signup-requests/$requestsId/check-Info'
+      fullPath: '/signup-requests/$requestsId/check-Info/'
+      preLoaderRoute: typeof AuthedLayoutSignupRequestsRequestsIdCheckInfoIndexRouteImport
+      parentRoute: typeof AuthedLayoutRouteRoute
+    }
   }
 }
 
@@ -175,6 +195,7 @@ interface AuthedLayoutRouteRouteChildren {
   AuthedLayoutMembersIndexRoute: typeof AuthedLayoutMembersIndexRoute
   AuthedLayoutSignupRequestsIndexRoute: typeof AuthedLayoutSignupRequestsIndexRoute
   AuthedLayoutSignupRequestsRequestsIdIndexRoute: typeof AuthedLayoutSignupRequestsRequestsIdIndexRoute
+  AuthedLayoutSignupRequestsRequestsIdCheckInfoIndexRoute: typeof AuthedLayoutSignupRequestsRequestsIdCheckInfoIndexRoute
 }
 
 const AuthedLayoutRouteRouteChildren: AuthedLayoutRouteRouteChildren = {
@@ -183,6 +204,8 @@ const AuthedLayoutRouteRouteChildren: AuthedLayoutRouteRouteChildren = {
   AuthedLayoutSignupRequestsIndexRoute: AuthedLayoutSignupRequestsIndexRoute,
   AuthedLayoutSignupRequestsRequestsIdIndexRoute:
     AuthedLayoutSignupRequestsRequestsIdIndexRoute,
+  AuthedLayoutSignupRequestsRequestsIdCheckInfoIndexRoute:
+    AuthedLayoutSignupRequestsRequestsIdCheckInfoIndexRoute,
 }
 
 const AuthedLayoutRouteRouteWithChildren =

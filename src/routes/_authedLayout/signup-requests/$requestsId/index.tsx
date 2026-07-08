@@ -1,5 +1,5 @@
 import BreadcrumbNav from '#/components/BreadcrumbNav'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import type { Dispatch, SetStateAction } from 'react'
 import { useState } from 'react'
 import CheckListCard, { type CheckListItem } from './-components/CheckListCard'
@@ -16,6 +16,9 @@ export const Route = createFileRoute(
 type EditableStepId = 'kakao-channel' | 'toss-place' | 'toss-payments'
 
 function RouteComponent() {
+  const navigate = useNavigate()
+  const { requestsId } = Route.useParams()
+
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [memo, setMemo] = useState('')
   const [activeStepId, setActiveStepId] = useState<EditableStepId | null>(null)
@@ -52,7 +55,12 @@ function RouteComponent() {
       title: '지점 정보 확인',
       status: 'done',
       onEditClick: () => {
-        console.log('지점 정보 확인 수정')
+        navigate({
+          to: '/signup-requests/$requestsId/check-Info',
+          params: {
+            requestsId,
+          },
+        })
       },
     },
     {
