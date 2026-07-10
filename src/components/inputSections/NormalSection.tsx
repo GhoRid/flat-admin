@@ -27,7 +27,7 @@ export default function NormalSection({
       <div className="flex flex-col items-center">
         <input
           className={[
-            "h-10 w-full rounded-[10px] border px-2.5 text-14 text-app-black placeholder:text-app-gray500 placeholder:opacity-50",
+            "h-10 w-full rounded-[10px] border px-2.5 text-14 text-app-black outline-none placeholder:text-app-gray500 placeholder:opacity-50 focus:border-app-black",
             errorMessage ? "border-app-red" : "border-app-gray100",
           ].join(" ")}
           type="text"

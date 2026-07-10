@@ -1,10 +1,12 @@
 import BreadcrumbNav from '#/components/BreadcrumbNav'
+import AccountSection from '#/components/inputSections/AccountSection'
+import AddressSection from '#/components/inputSections/AddressSection'
+import NormalSection from '#/components/inputSections/NormalSection'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import DocumentPreviewPanel, {
   type DocumentTab,
 } from './-components/DocumentPreviewPanel'
-import FormSection from './-components/FormSection'
 import StatusSelector, { type StepStatus } from './-components/StatusSelector'
 
 export const Route = createFileRoute(
@@ -164,89 +166,36 @@ function RouteComponent() {
           <div className="flex flex-col gap-5">
             <StatusSelector value={status} onChange={setStatus} />
 
-            <FormSection label="주소">
-              <div className="grid grid-cols-[1fr_120px] gap-2">
-                <input
-                  value={zipCode}
-                  placeholder="우편번호"
-                  readOnly
-                  className={inputClassName}
-                />
+            <AddressSection
+              zipCode={zipCode}
+              roadAddress={roadAddress}
+              detailAddress={detailAddress}
+              referenceAddress={referenceAddress}
+              onDetailAddressChange={setDetailAddress}
+              onPostcodeClick={openPostcode}
+            />
 
-                <button
-                  type="button"
-                  onClick={openPostcode}
-                  className="h-10 whitespace-nowrap rounded-[10px] bg-app-gray50 px-3 text-14 font-medium text-app-black"
-                >
-                  우편번호 찾기
-                </button>
-              </div>
+            <NormalSection
+              title="사업자번호"
+              value={businessNumber}
+              onChange={setBusinessNumber}
+              placeholder="사업자번호를 입력해주세요."
+            />
 
-              <input
-                value={roadAddress}
-                placeholder="도로명주소"
-                readOnly
-                className={inputClassName}
-              />
+            <AccountSection
+              bankOptions={BANK_OPTIONS}
+              bankName={bankName}
+              accountNumber={accountNumber}
+              onBankNameChange={setBankName}
+              onAccountNumberChange={setAccountNumber}
+            />
 
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  value={detailAddress}
-                  onChange={(e) => setDetailAddress(e.target.value)}
-                  placeholder="상세 주소"
-                  className={inputClassName}
-                />
-
-                <input
-                  value={referenceAddress}
-                  placeholder="참고 항목"
-                  readOnly
-                  className={inputClassName}
-                />
-              </div>
-            </FormSection>
-
-            <FormSection label="사업자번호">
-              <input
-                value={businessNumber}
-                onChange={(e) => setBusinessNumber(e.target.value)}
-                placeholder="사업자번호를 입력해주세요."
-                className={inputClassName}
-              />
-            </FormSection>
-
-            <FormSection label="계좌번호">
-              <div className="grid grid-cols-[0.9fr_1fr] gap-2">
-                <select
-                  value={bankName}
-                  onChange={(e) => setBankName(e.target.value)}
-                  className={inputClassName}
-                >
-                  <option value="">은행 선택</option>
-                  {BANK_OPTIONS.map((bank) => (
-                    <option key={bank} value={bank}>
-                      {bank}
-                    </option>
-                  ))}
-                </select>
-
-                <input
-                  value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value)}
-                  placeholder="계좌번호를 입력해주세요."
-                  className={inputClassName}
-                />
-              </div>
-            </FormSection>
-
-            <FormSection label="예금주명">
-              <input
-                value={depositorName}
-                onChange={(e) => setDepositorName(e.target.value)}
-                placeholder="예금주명을 입력해주세요."
-                className={inputClassName}
-              />
-            </FormSection>
+            <NormalSection
+              title="예금주명"
+              value={depositorName}
+              onChange={setDepositorName}
+              placeholder="예금주명을 입력해주세요."
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
@@ -271,6 +220,3 @@ function RouteComponent() {
     </div>
   )
 }
-
-const inputClassName =
-  'h-10 w-full rounded-[10px] border border-app-gray100 bg-white px-4 text-14 text-app-black outline-none placeholder:text-app-gray300 focus:border-app-black'
