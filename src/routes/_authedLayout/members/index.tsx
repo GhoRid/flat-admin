@@ -1,16 +1,19 @@
 import { fetchUserList } from '#/apis/api/user/user'
+import type { MemberListType } from '#/apis/api/user/user.dto'
 import FilterDropdown from '#/components/FilterDropdown'
 import TableSearchBar from '#/components/SearchBar'
 import CustomTable from '#/components/Table/CustomTable'
 import type { ColumnDef } from '#/types/shared.types'
-import { queryOptions } from '@tanstack/react-query'
+import { formatPhone, formatToYYYYMMDD } from '#/utils/format'
+import { queryOptions, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import { useMemo } from 'react'
 
 const fetchUserListQueryOptions = () =>
   queryOptions({
     queryKey: ['userList'],
     queryFn: async () => fetchUserList(),
-    select: (res) => res.data,
+    select: (res) => res.data as MemberListType[],
   })
 
 export const Route = createFileRoute('/_authedLayout/members/')({
@@ -34,8 +37,6 @@ type TableType = {
 }
 
 type MemberFilter = 'all'
-
-const members: TableType[] = []
 
 const memberColumns: ColumnDef<TableType>[] = [
   {
@@ -82,6 +83,19 @@ const memberFilterOptions = [
 ] satisfies Array<{ value: MemberFilter; label: string }>
 
 function RouteComponent() {
+  const { data: members } = useSuspenseQuery(fetchUserListQueryOptions())
+
+  const tableRows = useMemo<TableType[]>(
+    () =>
+      members.map((m) => ({
+        academyName: m.academyName || '미등록',
+        owner: m.name,
+        phoneNumber: formatPhone(m.phoneNumber),
+        joinedAt: formatToYYYYMMDD(new Date(m.createdAt)),
+      })),
+    [members],
+  )
+
   return (
     <div className="p-6 flex flex-col gap-4">
       <div className="flex h-8 items-center justify-between">
@@ -99,7 +113,7 @@ function RouteComponent() {
 
       <CustomTable
         columns={memberColumns}
-        data={members}
+        data={tableRows}
         rowKey={(_, index) => index}
       />
     </div>
