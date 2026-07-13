@@ -2,10 +2,12 @@ import BreadcrumbNav from '#/components/BreadcrumbNav'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import type { Dispatch, SetStateAction } from 'react'
 import { useState } from 'react'
+import UploadField, {
+  type UploadState,
+} from '../../../../components/inputSections/UploadField'
+import RequestInfoCard from '../../../../components/RequestInfoCard'
 import CheckListCard, { type CheckListItem } from './-components/CheckListCard'
-import RequestInfoCard from './-components/RequestInfoCard'
 import StepModal, { type StepStatus } from './-components/StepModal'
-import UploadField, { type UploadState } from './-components/UploadField'
 
 export const Route = createFileRoute(
   '/_authedLayout/signup-requests/$requestsId/',

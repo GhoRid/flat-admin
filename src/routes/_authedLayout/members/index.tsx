@@ -23,6 +23,9 @@ export const Route = createFileRoute('/_authedLayout/members/')({
 })
 
 type TableType = {
+  /** 회원 ID */
+  userId: number
+
   /** 학원명 */
   academyName: string
 
@@ -83,11 +86,13 @@ const memberFilterOptions = [
 ] satisfies Array<{ value: MemberFilter; label: string }>
 
 function RouteComponent() {
+  const navigate = Route.useNavigate()
   const { data: members } = useSuspenseQuery(fetchUserListQueryOptions())
 
   const tableRows = useMemo<TableType[]>(
     () =>
       members.map((m) => ({
+        userId: m.userId,
         academyName: m.academyName || '미등록',
         owner: m.name,
         phoneNumber: formatPhone(m.phoneNumber),
@@ -115,6 +120,9 @@ function RouteComponent() {
         columns={memberColumns}
         data={tableRows}
         rowKey={(_, index) => index}
+        onRowClick={(row) => {
+          navigate({ to: `./${row.userId}` })
+        }}
       />
     </div>
   )

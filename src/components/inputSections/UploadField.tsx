@@ -17,6 +17,9 @@ type UploadFieldProps = {
   value: UploadState
   required?: boolean
   acceptedExtensions?: string[]
+  readOnly?: boolean
+  fileName?: string
+  fileUrl?: string
   onChange: (file: File | null, error?: string) => void
   onDragChange: (isDragging: boolean) => void
 }
@@ -26,6 +29,9 @@ export default function UploadField({
   value,
   required = false,
   acceptedExtensions = DEFAULT_ACCEPTED_EXTENSIONS,
+  readOnly = false,
+  fileName,
+  fileUrl,
   onChange,
   onDragChange,
 }: UploadFieldProps) {
@@ -52,18 +58,24 @@ export default function UploadField({
   }
 
   const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
+    if (readOnly) return
+
     e.preventDefault()
     e.stopPropagation()
     onDragChange(true)
   }
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    if (readOnly) return
+
     e.preventDefault()
     e.stopPropagation()
     onDragChange(true)
   }
 
   const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    if (readOnly) return
+
     e.preventDefault()
     e.stopPropagation()
 
@@ -77,6 +89,8 @@ export default function UploadField({
   }
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    if (readOnly) return
+
     e.preventDefault()
     e.stopPropagation()
 
@@ -85,20 +99,26 @@ export default function UploadField({
   }
 
   const requiredError =
-    required && !value.file ? `${label} 파일을 업로드해 주세요.` : ''
+    required && !value.file && !fileUrl ? `${label} 파일을 업로드해 주세요.` : ''
 
   const error = value.error || requiredError
-  const hasFile = Boolean(value.file && !error)
+  const resolvedFileName = fileName || value.file?.name || label
+  const hasFile = Boolean((value.file || fileUrl) && !error)
 
   const fileText = error
     ? error
-    : value.file
-      ? (label ?? value.file.name)
+    : hasFile
+      ? (resolvedFileName ?? '')
       : label
         ? `${label} 파일이 존재하지 않습니다.`
         : '파일을 드래그하여 업로드하거나 파일을 선택해 주세요.'
 
   const handlePreview = () => {
+    if (fileUrl) {
+      window.open(fileUrl, '_blank', 'noopener,noreferrer')
+      return
+    }
+
     if (!value.file) return
 
     const url = URL.createObjectURL(value.file)
@@ -107,6 +127,15 @@ export default function UploadField({
   }
 
   const handleDownload = () => {
+    if (fileUrl) {
+      const link = document.createElement('a')
+      link.href = fileUrl
+      link.download = resolvedFileName || 'download'
+      link.rel = 'noopener noreferrer'
+      link.click()
+      return
+    }
+
     if (!value.file) return
 
     const url = URL.createObjectURL(value.file)
@@ -167,16 +196,18 @@ export default function UploadField({
               <Download size={14} aria-hidden />
               다운로드
             </button>
-            <button
-              type="button"
-              className="flex size-7 items-center justify-center rounded-[10px] border border-app-gray100 bg-white text-app-gray500"
-              aria-label="파일 삭제"
-              onClick={() => onChange(null)}
-            >
-              <Trash2 size={16} aria-hidden />
-            </button>
+            {!readOnly && (
+              <button
+                type="button"
+                className="flex size-7 items-center justify-center rounded-[10px] border border-app-gray100 bg-white text-app-gray500"
+                aria-label="파일 삭제"
+                onClick={() => onChange(null)}
+              >
+                <Trash2 size={16} aria-hidden />
+              </button>
+            )}
           </div>
-        ) : (
+        ) : readOnly ? null : (
           <button
             type="button"
             className="mr-4 h-7 rounded-[10px] border border-app-gray100 bg-white px-2 text-sm text-app-gray500"
