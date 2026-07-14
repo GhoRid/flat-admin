@@ -10,38 +10,50 @@ type InfoItem = {
   wrap?: boolean
 }
 
-export default function RequestInfoCard() {
+type RequestInfoCardProps = {
+  name?: string
+  nameLabel?: string
+  requestedAt?: string
+  email?: string
+  phoneNumber?: string
+}
+
+export default function RequestInfoCard({
+  name = '피스톤 체대입시 북구점',
+  nameLabel = '대표자',
+  requestedAt = '2026-01-01',
+  email = 'admin@gmail.com',
+  phoneNumber = '010-1234-1234',
+}: RequestInfoCardProps) {
   const Items: InfoItem[] = [
     {
       key: 'school',
-      label: '대표자',
-      value: '이헌재',
+      label: nameLabel,
+      value: name,
       icon: <SmallUserIcon />,
     },
-    {
+    email && {
       key: 'profile',
       label: '이메일',
-      value: 'admin@gmail.com',
+      value: email,
       icon: <MailIcon />,
     },
     {
-      key: 'profile',
+      key: 'phone',
       label: '연락처',
-      value: '010-1234-1234',
+      value: phoneNumber,
       icon: <PhoneIcon />,
     },
-  ]
+  ].filter(Boolean) as InfoItem[]
 
   return (
     <div className="flex flex-col gap-6 w-full justify-between rounded-xl border border-app-gray100 bg-white p-6 text-left">
       <div className="flex flex-col gap-4">
-        <p className="text-18 font-medium text-app-black">
-          피스톤 체대입시 북구점
-        </p>
+        <p className="text-18 font-medium text-app-black">{name}</p>
 
         <div className="flex items-center gap-2.5 text-14 font-normal text-app-gray500/50">
           <span>신청일</span>
-          <span>2026-01-01</span>
+          <span>{requestedAt}</span>
         </div>
       </div>
 

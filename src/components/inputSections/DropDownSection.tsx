@@ -1,39 +1,42 @@
-import { useId, useMemo, useState } from "react";
-import CaretIcon from "../CaretIcon";
-import OverlayDropdown from "../OverlayDropdown";
+import { useId, useMemo, useState } from 'react'
+import CaretIcon from '../CaretIcon'
+import OverlayDropdown from '../OverlayDropdown'
 
 export type DropDownOption = {
-  id: number | string;
-  label: string;
-  disabled?: boolean;
-};
+  id: number | string
+  label: string
+  disabled?: boolean
+}
 
 type DropDownSectionProps = {
-  id: string;
-  title?: string;
+  id: string
+  title?: string
 
-  options: DropDownOption[];
-  value: DropDownOption | null;
-  onChange: (next: DropDownOption) => void;
+  options: DropDownOption[]
+  value: DropDownOption | null
+  onChange: (next: DropDownOption) => void
 
-  placeholder?: string;
-  disabled?: boolean;
+  placeholder?: string
+  disabled?: boolean
 
   /** 옵션이 없을 때 보여줄 텍스트 */
-  emptyText?: string;
+  emptyText?: string
 
   /** 외부에서 styled() 확장할 수 있게 */
-  className?: string;
+  className?: string
 
   /** 메뉴 높이 커스텀 */
-  menuMaxHeight?: number;
+  menuMaxHeight?: number
 
   /** 화살표 아이콘 표시 여부 (기본: true) */
-  chevronVisible?: boolean;
+  chevronVisible?: boolean
+
+  /** 체크 아이콘 표시 여부 (기본: false) */
+  checkIconVisible?: boolean
 
   /** 메뉴 상단 검색 표시 여부 (기본: false) */
-  searchable?: boolean;
-};
+  searchable?: boolean
+}
 
 export default function DropDownSection({
   id,
@@ -41,43 +44,44 @@ export default function DropDownSection({
   options,
   value,
   onChange,
-  placeholder = "선택",
+  placeholder = '선택',
   disabled = false,
-  emptyText = "선택 가능한 항목이 없습니다.",
+  emptyText = '선택 가능한 항목이 없습니다.',
   chevronVisible = true,
+  checkIconVisible = false,
   className,
   menuMaxHeight = 220,
   searchable = false,
 }: DropDownSectionProps) {
-  const [openDropdown, setOpenDropdown] = useState(false);
-  const [keyword, setKeyword] = useState("");
-  const listboxId = useId();
-  const showSearchValue = searchable && openDropdown;
+  const [openDropdown, setOpenDropdown] = useState(false)
+  const [keyword, setKeyword] = useState('')
+  const listboxId = useId()
+  const showSearchValue = searchable && openDropdown
 
   const filteredOptions = useMemo(() => {
-    const trimmedKeyword = keyword.trim().toLowerCase();
-    if (!searchable || trimmedKeyword.length === 0) return options;
+    const trimmedKeyword = keyword.trim().toLowerCase()
+    if (!searchable || trimmedKeyword.length === 0) return options
 
-    return options.filter((option) => option.label.toLowerCase().includes(trimmedKeyword));
-  }, [keyword, options, searchable]);
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(trimmedKeyword),
+    )
+  }, [keyword, options, searchable])
 
   const closeDropdown = () => {
-    setOpenDropdown(false);
-    setKeyword("");
-  };
+    setOpenDropdown(false)
+    setKeyword('')
+  }
 
   const triggerClassName = [
-    "flex h-10 w-full items-center justify-between rounded-xl border border-app-gray100 bg-app-white px-2.5 text-14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-gray100 disabled:cursor-not-allowed disabled:opacity-50",
-    value === null ? "text-app-gray300" : "text-app-black",
-  ].join(" ");
+    'flex h-10 w-full items-center justify-between rounded-xl border border-app-gray100 bg-app-white px-2.5 text-14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-gray100 disabled:cursor-not-allowed disabled:opacity-50',
+    value === null ? 'text-app-gray300' : 'text-app-black',
+  ].join(' ')
 
   return (
     <div
-      className={[
-        "relative",
-        openDropdown ? "z-50" : "",
-        className ?? id,
-      ].join(" ")}
+      className={['relative', openDropdown ? 'z-50' : '', className ?? id].join(
+        ' ',
+      )}
     >
       {title && <h3 className="mb-2.5 text-14 text-app-gray500">{title}</h3>}
       {searchable ? (
@@ -89,13 +93,13 @@ export default function DropDownSection({
         >
           <input
             className="h-full min-w-0 flex-1 bg-transparent p-0 text-14 text-app-black outline-none placeholder:text-app-gray300 disabled:cursor-not-allowed"
-            value={showSearchValue ? keyword : (value?.label ?? "")}
+            value={showSearchValue ? keyword : (value?.label ?? '')}
             onChange={(event) => {
-              setKeyword(event.target.value);
-              if (!openDropdown) setOpenDropdown(true);
+              setKeyword(event.target.value)
+              if (!openDropdown) setOpenDropdown(true)
             }}
             onFocus={() => {
-              if (!disabled) setOpenDropdown(true);
+              if (!disabled) setOpenDropdown(true)
             }}
             placeholder={placeholder}
             disabled={disabled}
@@ -103,17 +107,17 @@ export default function DropDownSection({
           {chevronVisible && (
             <span
               className={[
-                "inline-flex transition-transform duration-[180ms]",
-                openDropdown ? "rotate-180" : "rotate-0",
-              ].join(" ")}
+                'inline-flex transition-transform duration-180ms',
+                openDropdown ? 'rotate-180' : 'rotate-0',
+              ].join(' ')}
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
-                if (disabled) return;
+                if (disabled) return
                 if (openDropdown) {
-                  closeDropdown();
-                  return;
+                  closeDropdown()
+                  return
                 }
-                setOpenDropdown(true);
+                setOpenDropdown(true)
               }}
             >
               <CaretIcon direction="down" color="var(--color-app-gray500)" />
@@ -125,12 +129,12 @@ export default function DropDownSection({
           className={triggerClassName}
           type="button"
           onClick={() => {
-            if (disabled) return;
+            if (disabled) return
             if (openDropdown) {
-              closeDropdown();
-              return;
+              closeDropdown()
+              return
             }
-            setOpenDropdown(true);
+            setOpenDropdown(true)
           }}
           aria-expanded={openDropdown && !disabled}
           aria-controls={listboxId}
@@ -140,9 +144,9 @@ export default function DropDownSection({
           {chevronVisible && (
             <span
               className={[
-                "inline-flex transition-transform duration-[180ms]",
-                openDropdown ? "rotate-180" : "rotate-0",
-              ].join(" ")}
+                'inline-flex transition-transform duration-180ms',
+                openDropdown ? 'rotate-180' : 'rotate-0',
+              ].join(' ')}
             >
               <CaretIcon direction="down" color="var(--color-app-gray500)" />
             </span>
@@ -158,15 +162,16 @@ export default function DropDownSection({
         isItemSelected={(option) => value?.id === option.id}
         isItemDisabled={(option) => Boolean(option.disabled)}
         onItemClick={(option) => {
-          onChange(option);
-          closeDropdown();
+          onChange(option)
+          closeDropdown()
         }}
         emptyText={emptyText}
         onClose={closeDropdown}
+        checkIconVisible={checkIconVisible}
         menuMaxHeight={menuMaxHeight}
         role="listbox"
         menuWidth="100%"
       />
     </div>
-  );
+  )
 }

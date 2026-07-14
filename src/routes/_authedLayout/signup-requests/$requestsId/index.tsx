@@ -1,7 +1,11 @@
+import { fetchApprovedUserInfo } from '#/apis/api/approvals/approvals'
+import type { SignUpRequestListDTO } from '#/apis/api/approvals/approvals.dto'
 import BreadcrumbNav from '#/components/BreadcrumbNav'
+import { formatPhone, formatToYmd } from '#/utils/format'
+import { queryOptions, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import type { Dispatch, SetStateAction } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import UploadField, {
   type UploadState,
 } from '../../../../components/inputSections/UploadField'
@@ -9,17 +13,39 @@ import RequestInfoCard from '../../../../components/RequestInfoCard'
 import CheckListCard, { type CheckListItem } from './-components/CheckListCard'
 import StepModal, { type StepStatus } from './-components/StepModal'
 
+const fetchApprovedUserInfoQueryOptions = (approvalId: number) =>
+  queryOptions({
+    queryKey: ['approved', approvalId],
+    queryFn: async () => fetchApprovedUserInfo(approvalId),
+    select: (res) => res.data as SignUpRequestListDTO,
+  })
+
 export const Route = createFileRoute(
   '/_authedLayout/signup-requests/$requestsId/',
 )({
+  loader: ({ context, params }) =>
+    context.queryClient.ensureQueryData(
+      fetchApprovedUserInfoQueryOptions(Number(params.requestsId)),
+    ),
   component: RouteComponent,
 })
 
 type EditableStepId = 'kakao-channel' | 'toss-place' | 'toss-payments'
 
+const stepStatusMap: Record<SignUpRequestListDTO['alimtalkStatus'], StepStatus> =
+  {
+    BEFORE: 'before',
+    IN_PROGRESS: 'progress',
+    COMPLETED: 'done',
+  }
+
 function RouteComponent() {
   const navigate = useNavigate()
   const { requestsId } = Route.useParams()
+  const approvalId = Number(requestsId)
+  const { data: requestInfo } = useSuspenseQuery(
+    fetchApprovedUserInfoQueryOptions(approvalId),
+  )
 
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [memo, setMemo] = useState('')
@@ -28,10 +54,18 @@ function RouteComponent() {
   const [stepStatuses, setStepStatuses] = useState<
     Record<EditableStepId, StepStatus>
   >({
-    'kakao-channel': 'progress',
-    'toss-place': 'before',
-    'toss-payments': 'before',
+    'kakao-channel': stepStatusMap[requestInfo.alimtalkStatus],
+    'toss-place': stepStatusMap[requestInfo.tossPlaceStatus],
+    'toss-payments': stepStatusMap[requestInfo.tossPaymentsStatus],
   })
+
+  useEffect(() => {
+    setStepStatuses({
+      'kakao-channel': stepStatusMap[requestInfo.alimtalkStatus],
+      'toss-place': stepStatusMap[requestInfo.tossPlaceStatus],
+      'toss-payments': stepStatusMap[requestInfo.tossPaymentsStatus],
+    })
+  }, [requestInfo])
 
   const [businessLicenseFile, setBusinessLicenseFile] = useState<UploadState>({
     file: null,
@@ -55,7 +89,7 @@ function RouteComponent() {
     {
       id: 'branch-info',
       title: '지점 정보 확인',
-      status: 'done',
+      status: stepStatusMap[requestInfo.branchVerifyStatus],
       onEditClick: () => {
         navigate({
           to: '/signup-requests/$requestsId/check-Info',
@@ -140,7 +174,13 @@ function RouteComponent() {
         />
 
         <div className="mx-auto flex w-full max-w-200 flex-col gap-8">
-          <RequestInfoCard />
+          <RequestInfoCard
+            name={requestInfo.name}
+            nameLabel="이름"
+            requestedAt={formatToYmd(requestInfo.createdAt)}
+            email=""
+            phoneNumber={formatPhone(requestInfo.phoneNumber)}
+          />
 
           <div className="flex flex-col gap-4">
             <p className="text-14 font-medium text-app-gray500">제출 서류</p>

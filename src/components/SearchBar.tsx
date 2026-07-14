@@ -1,19 +1,19 @@
 import SearchIcon from '@svgs/common/Search.svg?react'
 import React, { useMemo, useState } from 'react'
 
-type TableSearchBarProps = {
+type SearchBarProps = {
   value?: string
   onChange?: (v: string) => void
   onSearch?: (v: string) => void
   placeholder?: string
 }
 
-export default function TableSearchBar({
+export default function SearchBar({
   value,
   onChange,
   onSearch,
   placeholder = '검색어를 입력해주세요.',
-}: TableSearchBarProps) {
+}: SearchBarProps) {
   const isControlled = useMemo(() => value !== undefined, [value])
   const [inner, setInner] = useState('')
   const v = isControlled ? value! : inner
@@ -26,7 +26,7 @@ export default function TableSearchBar({
   const doSearch = () => onSearch?.(v)
 
   return (
-    <div className="group flex h-full min-w-75 max-w-100 items-center gap-1 rounded-[20px] border border-app-gray100 px-2.5 transition-colors duration-200 focus-within:border-app-black">
+    <div className="group flex h-full min-w-75 items-center gap-1 rounded-[20px] border border-app-gray100 px-2.5 transition-colors duration-200 focus-within:border-app-black">
       <SearchIcon className="text-app-gray500 opacity-50 transition-all duration-200 group-focus-within:text-app-black group-focus-within:opacity-100" />
 
       <input

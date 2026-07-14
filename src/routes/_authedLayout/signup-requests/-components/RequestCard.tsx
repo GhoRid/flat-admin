@@ -1,13 +1,12 @@
 import Badge from '#/components/Badge'
 
-export type RequestStatus = 'pending' | 'inProgress' | 'rejected'
+export type RequestStatus = 'pending' | 'inProgress' | 'rejected' | 'approved'
 export type RequestFilter = 'all' | RequestStatus
 export type StepStatus = 'idle' | 'progress' | 'done'
 
 export type SignupRequest = {
   id: number
-  academyName: string
-  owner: string
+  name: string
   phoneNumber: string
   requestedAt: string
   status: RequestStatus
@@ -21,12 +20,14 @@ export type SignupRequest = {
 
 type RequestCardProps = {
   request: SignupRequest
+  onPrefetch?: () => void
 }
 
 const statusLabel: Record<RequestStatus, string> = {
   pending: '검토 전',
   inProgress: '진행 중',
   rejected: '반려',
+  approved: '승인',
 }
 
 const createBadgeColors = (color: string) => ({
@@ -41,6 +42,7 @@ const statusBadgeColors: Record<
   pending: createBadgeColors('var(--color-app-orange)'),
   inProgress: createBadgeColors('var(--color-app-blue)'),
   rejected: createBadgeColors('var(--color-app-red)'),
+  approved: createBadgeColors('var(--color-app-green)'),
 }
 
 const stepLabels: Record<keyof SignupRequest['steps'], string> = {
@@ -62,13 +64,15 @@ const stepPrefix: Record<StepStatus, string> = {
   done: '✓',
 }
 
-export default function RequestCard({ request }: RequestCardProps) {
+export default function RequestCard({ request, onPrefetch }: RequestCardProps) {
   const badgeColors = statusBadgeColors[request.status]
 
   return (
     <button
       type="button"
       className="flex w-full items-center justify-between rounded-xl border border-app-gray100 bg-white p-6 text-left"
+      onMouseEnter={onPrefetch}
+      onFocus={onPrefetch}
 
       onClick={() => {
         window.location.href = `/signup-requests/${request.id}`
@@ -76,12 +80,10 @@ export default function RequestCard({ request }: RequestCardProps) {
     >
       <div className="min-w-0">
         <h4 className="text-16 font-medium text-app-black">
-          {request.academyName}
+          {request.name}
         </h4>
 
         <div className="mt-3 flex items-center text-14 font-normal text-app-gray500">
-          <span>대표자: {request.owner}</span>
-          <Divider />
           <span>신청일: {request.requestedAt}</span>
           <Divider />
           <span>연락처: {request.phoneNumber}</span>
