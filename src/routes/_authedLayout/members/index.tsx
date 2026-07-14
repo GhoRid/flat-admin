@@ -1,5 +1,5 @@
 import { fetchUserList } from '#/apis/api/user/user'
-import type { MemberListType } from '#/apis/api/user/user.dto'
+import type { UserListType } from '#/apis/api/user/user.dto'
 import FilterDropdown from '#/components/FilterDropdown'
 import TableSearchBar from '#/components/SearchBar'
 import CustomTable from '#/components/Table/CustomTable'
@@ -13,7 +13,7 @@ const fetchUserListQueryOptions = () =>
   queryOptions({
     queryKey: ['userList'],
     queryFn: async () => fetchUserList(),
-    select: (res) => res.data as MemberListType[],
+    select: (res) => res.data as UserListType[],
   })
 
 export const Route = createFileRoute('/_authedLayout/members/')({
