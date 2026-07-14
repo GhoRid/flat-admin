@@ -1,26 +1,26 @@
+import { updateUserInfo } from '#/apis/api/user/user'
+import type { UserDetail, updateUserInfoType } from '#/apis/api/user/user.dto'
+import { fetchUserInfoQueryOptions } from '#/apis/api/user/userQueryOptions'
 import BreadcrumbNav from '#/components/BreadcrumbNav'
-import InfoCard from '#/components/InfoCard'
+import AccountSection from '#/components/inputSections/AccountSection'
+import AddressSection from '#/components/inputSections/AddressSection'
+import NormalSection from '#/components/inputSections/NormalSection'
+import PhoneSection from '#/components/inputSections/PhoneSection'
 import UploadField, {
   type UploadState,
 } from '#/components/inputSections/UploadField'
-import RequestInfoCard from '#/components/RequestInfoCard'
-import BillingIcon from '@svgs/billing/Billing.svg?react'
-import EditIcon from '@svgs/common/Edit.svg?react'
-import PhoneIcon from '@svgs/common/Phone.svg?react'
-import PinIcon from '@svgs/common/Pin.svg?react'
-import HomeIcon from '@svgs/navigation/Home.svg?react'
-import SchoolIcon from '@svgs/navigation/School.svg?react'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
-import { fetchUserInfoQueryOptions } from './-queries/fetchUserInfoQueryOptions'
-
-const emptyUploadState: UploadState = {
-  file: null,
-  error: '',
-  isDragging: false,
-}
-
-const noop = () => undefined
+import BasicModal, {
+  type ModalAction,
+} from '#/components/modal/BasicModal'
+import { formatBusinessNumber } from '#/utils/format'
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 
 export const Route = createFileRoute('/_authedLayout/members/$memberId/')({
   loader: ({ context, params }) =>
@@ -30,102 +30,425 @@ export const Route = createFileRoute('/_authedLayout/members/$memberId/')({
   component: RouteComponent,
 })
 
+const BANK_OPTIONS = [
+  '국민은행',
+  '신한은행',
+  '우리은행',
+  '하나은행',
+  '농협은행',
+]
+
+const DAUM_POSTCODE_SRC =
+  'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
+
+let daumPostcodePromise: Promise<void> | null = null
+
+type MemberInfoFormValues = {
+  academyName: string
+  name: string
+  email: string
+  phoneNumber: string
+  academyPostCode: string
+  academyAddress: string
+  academyAddressDetail: string
+  academyAddressEtc: string
+  academyBusinessNumber: string
+  bankName: string
+  accountNumber: string
+  accountHolder: string
+  vanAgencyName: string
+  vanAgencyPhone: string
+}
+
+type DaumPostcodeData = {
+  zonecode?: string
+  roadAddress?: string
+  bname?: string
+  buildingName?: string
+  apartment?: string
+}
+
+declare global {
+  interface Window {
+    daum?: {
+      Postcode?: new (options: {
+        oncomplete: (data: DaumPostcodeData) => void
+      }) => {
+        open: () => void
+      }
+    }
+  }
+}
+
+const emptyUploadState: UploadState = {
+  file: null,
+  error: '',
+  isDragging: false,
+}
+
+const getMemberInfoFormValues = (
+  userInfo: UserDetail,
+): MemberInfoFormValues => ({
+  academyName: userInfo.academyName ?? '',
+  name: userInfo.name ?? '',
+  email: userInfo.email ?? '',
+  phoneNumber: userInfo.phoneNumber ?? '',
+  academyPostCode: userInfo.academyPostCode ?? '',
+  academyAddress: userInfo.academyAddress ?? '',
+  academyAddressDetail: userInfo.academyAddressDetail ?? '',
+  academyAddressEtc: userInfo.academyAddressEtc ?? '',
+  academyBusinessNumber: userInfo.academyBusinessNumber ?? '',
+  bankName: userInfo.bankName ?? '',
+  accountNumber: userInfo.accountNumber ?? '',
+  accountHolder: userInfo.accountHolder ?? '',
+  vanAgencyName: userInfo.vanAgencyName ?? '',
+  vanAgencyPhone: userInfo.vanAgencyPhone ?? '',
+})
+
+function loadDaumPostcodeScript() {
+  if (typeof window === 'undefined') return Promise.resolve()
+  if (window.daum?.Postcode) return Promise.resolve()
+
+  if (daumPostcodePromise) return daumPostcodePromise
+
+  daumPostcodePromise = new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector(
+      `script[src="${DAUM_POSTCODE_SRC}"]`,
+    ) as HTMLScriptElement | null
+
+    if (existing) {
+      existing.addEventListener('load', () => resolve(), { once: true })
+      existing.addEventListener('error', () => reject(), { once: true })
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = DAUM_POSTCODE_SRC
+    script.async = true
+    script.onload = () => resolve()
+    script.onerror = () => reject()
+    document.body.appendChild(script)
+  })
+
+  return daumPostcodePromise
+}
+
 function RouteComponent() {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const { memberId } = Route.useParams()
-  const { data: userInfo } = useSuspenseQuery(
-    fetchUserInfoQueryOptions(Number(memberId)),
-  )
-  const academyInfo = [
-    {
-      id: 'academy',
-      icon: <HomeIcon />,
-      label: '피스톤 체대입시 북구점',
-      // label: userInfo.academyInfo.name,
+  const userId = Number(memberId)
+  const { data: userInfo } = useSuspenseQuery(fetchUserInfoQueryOptions(userId))
+
+  const [businessLicenseUpload, setBusinessLicenseUpload] =
+    useState<UploadState>(emptyUploadState)
+  const [bankbookCopyUpload, setBankbookCopyUpload] =
+    useState<UploadState>(emptyUploadState)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalContent, setModalContent] = useState<{
+    title: string
+    description: string
+    actions: [ModalAction] | [ModalAction, ModalAction]
+  }>({
+    title: '회원 정보 수정',
+    description: '확인',
+    actions: [
+      {
+        label: '확인',
+        onClick: () => setIsModalOpen(false),
+      },
+    ],
+  })
+
+  const { control, handleSubmit, reset, setValue, watch } =
+    useForm<MemberInfoFormValues>({
+      defaultValues: getMemberInfoFormValues(userInfo),
+    })
+  const formValues = watch()
+
+  useEffect(() => {
+    reset(getMemberInfoFormValues(userInfo))
+    setBusinessLicenseUpload(emptyUploadState)
+    setBankbookCopyUpload(emptyUploadState)
+  }, [userInfo, reset])
+
+  const memberInfoMutation = useMutation({
+    mutationFn: (values: MemberInfoFormValues) => {
+      const payload: updateUserInfoType = {
+        ...values,
+        businessLicenseFile: businessLicenseUpload.file,
+        bankbookCopyFile: bankbookCopyUpload.file,
+      }
+
+      return updateUserInfo(userId, payload)
     },
-    {
-      id: 'address',
-      icon: <PinIcon />,
-      label: '광주광역시 북구 서하로 369 샛터코아 6층 피스톤체대입시학원',
-      // label: userInfo.academyInfo.address,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['user', userId],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['user'],
+      })
+      setModalContent({
+        title: '회원 정보 수정',
+        description: '회원 정보가 정상적으로 저장되었습니다.',
+        actions: [
+          {
+            label: '확인',
+            onClick: () => setIsModalOpen(false),
+          },
+        ],
+      })
+      setIsModalOpen(true)
     },
-    {
-      id: 'business-number',
-      icon: <SchoolIcon />,
-      label: '123-12-12345',
-      // label: userInfo.academyInfo.businessNumber,
+    onError: () => {
+      setModalContent({
+        title: '회원 정보 수정',
+        description:
+          '회원 정보 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        actions: [
+          {
+            label: '확인',
+            onClick: () => setIsModalOpen(false),
+          },
+        ],
+      })
+      setIsModalOpen(true)
     },
-    {
-      id: 'bank-account',
-      icon: <BillingIcon />,
-      label: '광주은행  123-1234-123456  (이헌재)',
-      // label: `${userInfo.academyInfo.bankName} ${userInfo.academyInfo.bankAccountNumber} (${userInfo.academyInfo.accountHolder})`,
-    },
-  ]
-  const vanInfo = [
-    {
-      id: 'van-name',
-      icon: <HomeIcon />,
-      label: '투리버스',
-      // label: userInfo.vanAgencyInfo?.name ?? '-',
-    },
-    {
-      id: 'van-phone',
-      icon: <PhoneIcon />,
-      label: '010-1234-5678',
-      // label: userInfo.vanAgencyInfo?.phoneNumber ?? '-',
-    },
-  ]
+  })
+
+  const openPostcode = async () => {
+    await loadDaumPostcodeScript()
+    if (!window.daum?.Postcode) return
+
+    new window.daum.Postcode({
+      oncomplete: (data) => {
+        const roadAddr = data.roadAddress ?? ''
+        let extraRoadAddr = ''
+
+        if (data.bname && /[동|로|가]$/g.test(data.bname)) {
+          extraRoadAddr += data.bname
+        }
+        if (data.buildingName && data.apartment === 'Y') {
+          extraRoadAddr += extraRoadAddr
+            ? `, ${data.buildingName}`
+            : data.buildingName
+        }
+
+        setValue('academyPostCode', data.zonecode ?? '', {
+          shouldDirty: true,
+          shouldValidate: true,
+        })
+        setValue('academyAddress', roadAddr, {
+          shouldDirty: true,
+          shouldValidate: true,
+        })
+        setValue('academyAddressEtc', roadAddr ? extraRoadAddr : '', {
+          shouldDirty: true,
+          shouldValidate: true,
+        })
+      },
+    }).open()
+  }
+
+  const handleCancel = () => {
+    navigate({ to: '/members' })
+  }
+
+  const handleSave = (values: MemberInfoFormValues) => {
+    memberInfoMutation.mutate(values)
+  }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <BreadcrumbNav items={[{ label: '회원 관리' }, { label: '회원 상세' }]} />
+    <>
+      <div className="flex min-h-[calc(100dvh-48px)] flex-col gap-6 p-6">
+        <BreadcrumbNav
+          items={[{ label: '회원 관리', to: '/members' }, { label: '회원 상세' }]}
+        />
 
-      <main className="mx-auto w-full max-w-200 gap-4 flex flex-col ">
-        <div className="flex justify-end">
-          <button
-            type="button"
-            // onClick={handleEdit}
-            className="inline-flex h-8 items-center gap-1 rounded-[10px] bg-app-primary px-3 text-14 font-normal text-app-black"
-          >
-            <EditIcon />
-            회원 정보 수정
-          </button>
-        </div>
+        <form
+          className="mx-auto flex w-full max-w-[1050px] flex-col gap-8"
+          onSubmit={handleSubmit(handleSave)}
+        >
+          <div className="flex flex-col gap-5">
+            <Controller
+              control={control}
+              name="academyName"
+              render={({ field }) => (
+                <NormalSection
+                  title="학원명"
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="학원명"
+                />
+              )}
+            />
 
-        <div className="flex flex-col gap-8">
-          <RequestInfoCard />
+            <Controller
+              control={control}
+              name="name"
+              render={({ field }) => (
+                <NormalSection
+                  title="대표자명"
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="이름"
+                />
+              )}
+            />
 
-          <div className="flex flex-col gap-4">
-            <p className="text-14 font-medium text-app-gray500">기본 서류</p>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field }) => (
+                <NormalSection
+                  title="이메일"
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="이메일 입력"
+                />
+              )}
+            />
 
-            <div className="flex flex-col gap-2">
-              <UploadField
-                value={emptyUploadState}
-                label="사업자등록증"
-                readOnly
-                fileName={userInfo.businessLicense?.fileName}
-                fileUrl={userInfo.businessLicense?.fileUrl}
-                onChange={noop}
-                onDragChange={noop}
+            <Controller
+              control={control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <PhoneSection
+                  title="연락처"
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="연락처 입력"
+                />
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="academyAddressDetail"
+              render={({ field }) => (
+                <AddressSection
+                  zipCode={formValues.academyPostCode}
+                  roadAddress={formValues.academyAddress}
+                  detailAddress={field.value}
+                  referenceAddress={formValues.academyAddressEtc}
+                  onDetailAddressChange={field.onChange}
+                  onPostcodeClick={openPostcode}
+                />
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="academyBusinessNumber"
+              render={({ field }) => (
+                <NormalSection
+                  title="사업자번호"
+                  value={formatBusinessNumber(field.value)}
+                  onChange={field.onChange}
+                  placeholder="사업자번호"
+                />
+              )}
+            />
+
+            <div className="grid grid-cols-[1fr_300px] gap-3">
+              <Controller
+                control={control}
+                name="accountNumber"
+                render={({ field }) => (
+                  <AccountSection
+                    bankOptions={BANK_OPTIONS}
+                    bankName={formValues.bankName}
+                    accountNumber={field.value}
+                    onBankNameChange={(next) =>
+                      setValue('bankName', next, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })
+                    }
+                    onAccountNumberChange={field.onChange}
+                  />
+                )}
               />
 
-              <UploadField
-                value={emptyUploadState}
-                label="통장 사본"
-                readOnly
-                fileName={userInfo.bankbookCopy?.fileName}
-                fileUrl={userInfo.bankbookCopy?.fileUrl}
-                onChange={noop}
-                onDragChange={noop}
+              <Controller
+                control={control}
+                name="accountHolder"
+                render={({ field }) => (
+                  <NormalSection
+                    title="예금주명"
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="예금주명"
+                  />
+                )}
               />
             </div>
+
+            <UploadField
+              value={businessLicenseUpload}
+              label="사업자 등록증"
+              onChange={(file, error = '') =>
+                setBusinessLicenseUpload({
+                  file,
+                  error,
+                  isDragging: false,
+                })
+              }
+              onDragChange={(isDragging) =>
+                setBusinessLicenseUpload((prev) => ({
+                  ...prev,
+                  isDragging,
+                }))
+              }
+            />
+
+            <UploadField
+              value={bankbookCopyUpload}
+              label="통장 사본"
+              onChange={(file, error = '') =>
+                setBankbookCopyUpload({
+                  file,
+                  error,
+                  isDragging: false,
+                })
+              }
+              onDragChange={(isDragging) =>
+                setBankbookCopyUpload((prev) => ({
+                  ...prev,
+                  isDragging,
+                }))
+              }
+            />
           </div>
 
-          <InfoCard title="학원 정보" items={academyInfo} />
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="h-14 rounded-[10px] bg-app-gray50 text-18 font-medium text-app-black transition-opacity hover:opacity-92"
+            >
+              취소
+            </button>
 
-          <InfoCard title="VAN 대리점 정보" items={vanInfo} />
-        </div>
-      </main>
-    </div>
+            <button
+              type="submit"
+              disabled={memberInfoMutation.isPending}
+              className="h-14 rounded-[10px] bg-app-primary text-18 font-medium text-app-black transition-opacity hover:opacity-92 disabled:opacity-50"
+            >
+              저장
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <BasicModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={modalContent.title}
+        description={modalContent.description}
+        actions={modalContent.actions}
+      />
+    </>
   )
 }

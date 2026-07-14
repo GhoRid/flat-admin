@@ -13,8 +13,8 @@ export type updateUserInfoType = {
   name: string
   email: string
   phoneNumber: string
-  businessLicenseFile: File
-  bankbookCopyFile: File
+  businessLicenseFile?: File | null
+  bankbookCopyFile?: File | null
   academyName: string
   academyPostCode: string
   academyAddress: string
@@ -23,6 +23,7 @@ export type updateUserInfoType = {
   academyBusinessNumber: string
   bankName: string
   accountNumber: string
+  accountHolder: string
   vanAgencyName: string
   vanAgencyPhone: string
 }
@@ -41,6 +42,7 @@ export type UserDetail = {
   academyBusinessNumber: string
   bankName: string
   accountNumber: string
+  accountHolder: string | null
   vanAgencyName: string
   vanAgencyPhone: string
 }
