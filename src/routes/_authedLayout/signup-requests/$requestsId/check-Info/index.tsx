@@ -343,14 +343,20 @@ function RouteComponent() {
     <>
       <div className="flex min-h-[calc(100dvh-48px)] flex-col gap-6 p-6">
         <BreadcrumbNav
+          backTo={`/signup-requests/${requestsId}`}
+          backReplace
           items={[
-            { label: '가입 신청 관리', to: '/signup-requests' },
-            { label: '신청 상세' },
+            { label: '가입 신청 관리', to: '/signup-requests', replace: true },
+            {
+              label: '신청 상세',
+              to: `/signup-requests/${requestsId}`,
+              replace: true,
+            },
             { label: '지점 정보 확인' },
           ]}
         />
 
-        <div className="mx-auto grid min-h-0 w-full max-w-[1150px] flex-1 grid-cols-[1fr_1.12fr] gap-8">
+        <div className="mx-auto grid min-h-0 w-full max-w-287.5 flex-1 grid-cols-[1fr_1.12fr] gap-8">
           <DocumentPreviewPanel
             activeTab={activeDocumentTab}
             onTabChange={setActiveDocumentTab}

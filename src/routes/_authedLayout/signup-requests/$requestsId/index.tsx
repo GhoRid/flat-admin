@@ -4,13 +4,14 @@ import {
   updateTossPaymentsStatus,
   updateTossPlaceStatus,
 } from '#/apis/api/approvals/approvals'
-import type { SignUpRequestDetailDTO, STEP } from '#/apis/api/approvals/approvals.dto'
+import type {
+  SignUpRequestDetailDTO,
+  STEP,
+} from '#/apis/api/approvals/approvals.dto'
 import { fetchApprovedUserInfoQueryOptions } from '#/apis/api/approvals/approvalsQueryOptions'
 import { fetchFileQueryOptions } from '#/apis/api/file/fileQueryOptions'
 import BreadcrumbNav from '#/components/BreadcrumbNav'
-import BasicModal, {
-  type ModalAction,
-} from '#/components/modal/BasicModal'
+import BasicModal, { type ModalAction } from '#/components/modal/BasicModal'
 import { formatPhone, formatToYmd } from '#/utils/format'
 import {
   useMutation,
@@ -346,7 +347,10 @@ function RouteComponent() {
     <>
       <div className="flex flex-col gap-6 p-6">
         <BreadcrumbNav
-          items={[{ label: '가입 신청 관리' }, { label: '신청 상세' }]}
+          items={[
+            { label: '가입 신청 관리', replace: true },
+            { label: '신청 상세' },
+          ]}
         />
 
         <div className="mx-auto flex w-full max-w-200 flex-col gap-8">
