@@ -66,7 +66,7 @@ export default function MonthPickerModal({
       closeTimeoutMS={180}
       className={cn(
         'absolute rounded-[10px] bg-app-white shadow-[0_2px_20px_rgba(0,0,0,0.03),0_2px_8px_rgba(0,0,0,0.08)] outline-none',
-        'opacity-0 -translate-y-2 scale-[0.98] transition-[opacity,transform] duration-[180ms] ease-in-out will-change-[transform,opacity]',
+        'opacity-0 -translate-y-2 scale-[0.98] transition-[opacity,transform] duration-180ms ease-in-out will-change-[transform,opacity]',
         '[&.ReactModal__Content--after-open]:translate-y-0',
         '[&.ReactModal__Content--after-open]:scale-100',
         '[&.ReactModal__Content--after-open]:opacity-100',

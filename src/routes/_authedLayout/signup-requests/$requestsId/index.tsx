@@ -8,6 +8,9 @@ import type { SignUpRequestDetailDTO, STEP } from '#/apis/api/approvals/approval
 import { fetchApprovedUserInfoQueryOptions } from '#/apis/api/approvals/approvalsQueryOptions'
 import { fetchFileQueryOptions } from '#/apis/api/file/fileQueryOptions'
 import BreadcrumbNav from '#/components/BreadcrumbNav'
+import BasicModal, {
+  type ModalAction,
+} from '#/components/modal/BasicModal'
 import { formatPhone, formatToYmd } from '#/utils/format'
 import {
   useMutation,
@@ -76,6 +79,21 @@ function RouteComponent() {
 
   const [memo, setMemo] = useState(requestInfo.note ?? '')
   const [activeStepId, setActiveStepId] = useState<EditableStepId | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalContent, setModalContent] = useState<{
+    title: string
+    description: string
+    actions: [ModalAction] | [ModalAction, ModalAction]
+  }>({
+    title: '가입 신청 상세',
+    description: '확인',
+    actions: [
+      {
+        label: '확인',
+        onClick: () => setIsModalOpen(false),
+      },
+    ],
+  })
 
   const [stepStatuses, setStepStatuses] = useState<
     Record<EditableStepId, StepStatus>
@@ -124,7 +142,34 @@ function RouteComponent() {
         bankbookCopyFile: bankbookCopyFile.file ?? undefined,
         note: memo,
       }),
-    onSuccess: invalidateRequestInfo,
+    onSuccess: () => {
+      invalidateRequestInfo()
+      setModalContent({
+        title: '제출 서류 저장',
+        description: '제출 서류와 비고가 정상적으로 저장되었습니다.',
+        actions: [
+          {
+            label: '확인',
+            onClick: () => setIsModalOpen(false),
+          },
+        ],
+      })
+      setIsModalOpen(true)
+    },
+    onError: () => {
+      setModalContent({
+        title: '제출 서류 저장',
+        description:
+          '제출 서류 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        actions: [
+          {
+            label: '확인',
+            onClick: () => setIsModalOpen(false),
+          },
+        ],
+      })
+      setIsModalOpen(true)
+    },
   })
 
   const stepStatusMutation = useMutation({
@@ -153,7 +198,34 @@ function RouteComponent() {
         tossPaymentsStatus: apiStatus,
       })
     },
-    onSuccess: invalidateRequestInfo,
+    onSuccess: () => {
+      invalidateRequestInfo()
+      setModalContent({
+        title: '승인 단계 상태 변경',
+        description: '승인 단계 상태가 정상적으로 변경되었습니다.',
+        actions: [
+          {
+            label: '확인',
+            onClick: () => setIsModalOpen(false),
+          },
+        ],
+      })
+      setIsModalOpen(true)
+    },
+    onError: () => {
+      setModalContent({
+        title: '승인 단계 상태 변경',
+        description:
+          '승인 단계 상태 변경 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        actions: [
+          {
+            label: '확인',
+            onClick: () => setIsModalOpen(false),
+          },
+        ],
+      })
+      setIsModalOpen(true)
+    },
   })
 
   const [businessLicenseFile, setBusinessLicenseFile] = useState<UploadState>({
@@ -370,6 +442,14 @@ function RouteComponent() {
           onStatusChange={handleStepStatusChange}
         />
       )}
+
+      <BasicModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={modalContent.title}
+        description={modalContent.description}
+        actions={modalContent.actions}
+      />
     </>
   )
 }

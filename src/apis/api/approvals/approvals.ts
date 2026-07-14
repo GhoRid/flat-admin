@@ -63,6 +63,11 @@ export const updateApprovalDocuments = async (
   return await appInstance.patch(
     `/admin/user-approvals/${approvalId}/documents`,
     formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    },
   )
 }
 
