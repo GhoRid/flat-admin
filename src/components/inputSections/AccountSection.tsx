@@ -16,7 +16,7 @@ export default function AccountSection({
   return (
     <section className="flex flex-col gap-2">
       <h3 className="text-14 font-medium text-app-gray500">계좌번호</h3>
-      <div className="grid grid-cols-[0.9fr_1fr] gap-2">
+      <div className="grid grid-cols-[1fr_1.6fr] gap-1">
         <select
           value={bankName}
           onChange={(e) => onBankNameChange(e.target.value)}

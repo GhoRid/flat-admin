@@ -9,9 +9,7 @@ import PhoneSection from '#/components/inputSections/PhoneSection'
 import UploadField, {
   type UploadState,
 } from '#/components/inputSections/UploadField'
-import BasicModal, {
-  type ModalAction,
-} from '#/components/modal/BasicModal'
+import BasicModal, { type ModalAction } from '#/components/modal/BasicModal'
 import { formatBusinessNumber } from '#/utils/format'
 import {
   useMutation,
@@ -263,14 +261,17 @@ function RouteComponent() {
     <>
       <div className="flex min-h-[calc(100dvh-48px)] flex-col gap-6 p-6">
         <BreadcrumbNav
-          items={[{ label: '회원 관리', to: '/members' }, { label: '회원 상세' }]}
+          items={[
+            { label: '회원 관리', to: '/members' },
+            { label: '회원 상세' },
+          ]}
         />
 
         <form
-          className="mx-auto flex w-full max-w-[1050px] flex-col gap-8"
+          className="mx-auto flex w-full max-w-191.25 flex-col gap-8"
           onSubmit={handleSubmit(handleSave)}
         >
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-8">
             <Controller
               control={control}
               name="academyName"
@@ -351,7 +352,7 @@ function RouteComponent() {
               )}
             />
 
-            <div className="grid grid-cols-[1fr_300px] gap-3">
+            <div className="grid grid-cols-[1fr_250px] gap-2.5">
               <Controller
                 control={control}
                 name="accountNumber"
@@ -385,41 +386,47 @@ function RouteComponent() {
               />
             </div>
 
-            <UploadField
-              value={businessLicenseUpload}
-              label="사업자 등록증"
-              onChange={(file, error = '') =>
-                setBusinessLicenseUpload({
-                  file,
-                  error,
-                  isDragging: false,
-                })
-              }
-              onDragChange={(isDragging) =>
-                setBusinessLicenseUpload((prev) => ({
-                  ...prev,
-                  isDragging,
-                }))
-              }
-            />
+            <div>
+              <h3 className="mb-2.5 text-14 text-app-gray500">사업자 등록증</h3>
+              <UploadField
+                value={businessLicenseUpload}
+                label="사업자 등록증"
+                onChange={(file, error = '') =>
+                  setBusinessLicenseUpload({
+                    file,
+                    error,
+                    isDragging: false,
+                  })
+                }
+                onDragChange={(isDragging) =>
+                  setBusinessLicenseUpload((prev) => ({
+                    ...prev,
+                    isDragging,
+                  }))
+                }
+              />
+            </div>
 
-            <UploadField
-              value={bankbookCopyUpload}
-              label="통장 사본"
-              onChange={(file, error = '') =>
-                setBankbookCopyUpload({
-                  file,
-                  error,
-                  isDragging: false,
-                })
-              }
-              onDragChange={(isDragging) =>
-                setBankbookCopyUpload((prev) => ({
-                  ...prev,
-                  isDragging,
-                }))
-              }
-            />
+            <div>
+              <h3 className="mb-2.5 text-14 text-app-gray500">통장 사본</h3>
+              <UploadField
+                value={bankbookCopyUpload}
+                label="통장 사본"
+                onChange={(file, error = '') =>
+                  setBankbookCopyUpload({
+                    file,
+                    error,
+                    isDragging: false,
+                  })
+                }
+                onDragChange={(isDragging) =>
+                  setBankbookCopyUpload((prev) => ({
+                    ...prev,
+                    isDragging,
+                  }))
+                }
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

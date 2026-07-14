@@ -9,9 +9,7 @@ import BreadcrumbNav from '#/components/BreadcrumbNav'
 import AccountSection from '#/components/inputSections/AccountSection'
 import AddressSection from '#/components/inputSections/AddressSection'
 import NormalSection from '#/components/inputSections/NormalSection'
-import BasicModal, {
-  type ModalAction,
-} from '#/components/modal/BasicModal'
+import BasicModal, { type ModalAction } from '#/components/modal/BasicModal'
 import { formatBusinessNumber } from '#/utils/format'
 import {
   useMutation,
@@ -198,6 +196,7 @@ function RouteComponent() {
     formValues.accountNumber,
     formValues.accountHolder,
   ]
+
   const isAnyFieldFilled = fieldValues.some((value) => value.trim().length > 0)
   const isAllFieldsFilled = fieldValues.every(
     (value) => value.trim().length > 0,
