@@ -17,6 +17,7 @@ export type SignUpRequestListDTO = {
 }
 
 export type SignUpRequestDetailDTO = {
+  createdAt?: string
   name: string
   email: string
   phoneNumber: string

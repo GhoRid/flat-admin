@@ -104,11 +104,12 @@ export default function UploadField({
   const error = value.error || requiredError
   const resolvedFileName = fileName || value.file?.name || label
   const hasFile = Boolean((value.file || fileUrl) && !error)
+  const displayLabel = label ?? resolvedFileName
 
   const fileText = error
     ? error
     : hasFile
-      ? (resolvedFileName ?? '')
+      ? (displayLabel ?? '')
       : label
         ? `${label} 파일이 존재하지 않습니다.`
         : '파일을 드래그하여 업로드하거나 파일을 선택해 주세요.'

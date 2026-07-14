@@ -1,24 +1,28 @@
-import { fetchApprovedUserInfo } from '#/apis/api/approvals/approvals'
-import type { SignUpRequestListDTO } from '#/apis/api/approvals/approvals.dto'
+import {
+  updateAlimtalkStatus,
+  updateApprovalDocuments,
+  updateTossPaymentsStatus,
+  updateTossPlaceStatus,
+} from '#/apis/api/approvals/approvals'
+import type { SignUpRequestDetailDTO, STEP } from '#/apis/api/approvals/approvals.dto'
+import { fetchApprovedUserInfoQueryOptions } from '#/apis/api/approvals/approvalsQueryOptions'
+import { fetchFileQueryOptions } from '#/apis/api/file/fileQueryOptions'
 import BreadcrumbNav from '#/components/BreadcrumbNav'
 import { formatPhone, formatToYmd } from '#/utils/format'
-import { queryOptions, useSuspenseQuery } from '@tanstack/react-query'
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import type { Dispatch, SetStateAction } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import UploadField, {
   type UploadState,
 } from '../../../../components/inputSections/UploadField'
 import RequestInfoCard from '../../../../components/RequestInfoCard'
 import CheckListCard, { type CheckListItem } from './-components/CheckListCard'
 import StepModal, { type StepStatus } from './-components/StepModal'
-
-const fetchApprovedUserInfoQueryOptions = (approvalId: number) =>
-  queryOptions({
-    queryKey: ['approved', approvalId],
-    queryFn: async () => fetchApprovedUserInfo(approvalId),
-    select: (res) => res.data as SignUpRequestListDTO,
-  })
 
 export const Route = createFileRoute(
   '/_authedLayout/signup-requests/$requestsId/',
@@ -32,23 +36,45 @@ export const Route = createFileRoute(
 
 type EditableStepId = 'kakao-channel' | 'toss-place' | 'toss-payments'
 
-const stepStatusMap: Record<SignUpRequestListDTO['alimtalkStatus'], StepStatus> =
-  {
-    BEFORE: 'before',
-    IN_PROGRESS: 'progress',
-    COMPLETED: 'done',
-  }
+const stepStatusMap: Record<
+  SignUpRequestDetailDTO['alimtalkStatus'],
+  StepStatus
+> = {
+  BEFORE: 'before',
+  IN_PROGRESS: 'progress',
+  COMPLETED: 'done',
+}
+
+const apiStepStatusMap: Record<StepStatus, STEP> = {
+  before: 'BEFORE',
+  progress: 'IN_PROGRESS',
+  done: 'COMPLETED',
+}
 
 function RouteComponent() {
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
   const { requestsId } = Route.useParams()
   const approvalId = Number(requestsId)
   const { data: requestInfo } = useSuspenseQuery(
     fetchApprovedUserInfoQueryOptions(approvalId),
   )
+  const { data: businessLicenseFileInfo } = useSuspenseQuery(
+    fetchFileQueryOptions(requestInfo.businessLicenseFileId),
+  )
+  const { data: bankbookCopyFileInfo } = useSuspenseQuery(
+    fetchFileQueryOptions(requestInfo.bankbookCopyFileId),
+  )
+  const businessLicenseFileUrl = useMemo(
+    () => URL.createObjectURL(businessLicenseFileInfo),
+    [businessLicenseFileInfo],
+  )
+  const bankbookCopyFileUrl = useMemo(
+    () => URL.createObjectURL(bankbookCopyFileInfo),
+    [bankbookCopyFileInfo],
+  )
 
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [memo, setMemo] = useState('')
+  const [memo, setMemo] = useState(requestInfo.note ?? '')
   const [activeStepId, setActiveStepId] = useState<EditableStepId | null>(null)
 
   const [stepStatuses, setStepStatuses] = useState<
@@ -65,7 +91,70 @@ function RouteComponent() {
       'toss-place': stepStatusMap[requestInfo.tossPlaceStatus],
       'toss-payments': stepStatusMap[requestInfo.tossPaymentsStatus],
     })
+    setMemo(requestInfo.note ?? '')
   }, [requestInfo])
+
+  useEffect(
+    () => () => {
+      URL.revokeObjectURL(businessLicenseFileUrl)
+    },
+    [businessLicenseFileUrl],
+  )
+
+  useEffect(
+    () => () => {
+      URL.revokeObjectURL(bankbookCopyFileUrl)
+    },
+    [bankbookCopyFileUrl],
+  )
+
+  const invalidateRequestInfo = () => {
+    queryClient.invalidateQueries({
+      queryKey: ['approved', approvalId],
+    })
+    queryClient.invalidateQueries({
+      queryKey: ['approved'],
+    })
+  }
+
+  const documentsMutation = useMutation({
+    mutationFn: () =>
+      updateApprovalDocuments(approvalId, {
+        businessLicenseFile: businessLicenseFile.file ?? undefined,
+        bankbookCopyFile: bankbookCopyFile.file ?? undefined,
+        note: memo,
+      }),
+    onSuccess: invalidateRequestInfo,
+  })
+
+  const stepStatusMutation = useMutation({
+    mutationFn: ({
+      stepId,
+      status,
+    }: {
+      stepId: EditableStepId
+      status: StepStatus
+    }) => {
+      const apiStatus = apiStepStatusMap[status]
+
+      if (stepId === 'kakao-channel') {
+        return updateAlimtalkStatus(approvalId, {
+          alimtalkStatus: apiStatus,
+        })
+      }
+
+      if (stepId === 'toss-place') {
+        return updateTossPlaceStatus(approvalId, {
+          tossPlaceStatus: apiStatus,
+        })
+      }
+
+      return updateTossPaymentsStatus(approvalId, {
+        tossPaymentsStatus: apiStatus,
+      })
+    },
+    onSuccess: invalidateRequestInfo,
+  })
 
   const [businessLicenseFile, setBusinessLicenseFile] = useState<UploadState>({
     file: null,
@@ -84,6 +173,13 @@ function RouteComponent() {
     error: '',
     isDragging: false,
   })
+
+  const displayedBusinessLicenseFileUrl = businessLicenseFile.file
+    ? undefined
+    : businessLicenseFileUrl
+  const displayedBankbookCopyFileUrl = bankbookCopyFile.file
+    ? undefined
+    : bankbookCopyFileUrl
 
   const checkListItems = [
     {
@@ -147,10 +243,9 @@ function RouteComponent() {
     }
 
   const handleSubmit = () => {
-    setIsSubmitted(true)
-
     const hasRequiredFileError =
-      !businessLicenseFile.file || !bankbookCopyFile.file
+      (!businessLicenseFile.file && !businessLicenseFileUrl) ||
+      (!bankbookCopyFile.file && !bankbookCopyFileUrl)
 
     const hasUploadError =
       businessLicenseFile.error || bankbookCopyFile.error || etcFile.error
@@ -159,11 +254,20 @@ function RouteComponent() {
       return
     }
 
-    // TODO: 승인 / 저장 API 호출
-    // businessLicenseFile.file
-    // bankbookCopyFile.file
-    // etcFile.file
-    // memo
+    documentsMutation.mutate()
+  }
+
+  const handleStepStatusChange = (status: StepStatus) => {
+    if (!activeStepId) return
+
+    const stepId = activeStepId
+
+    setStepStatuses((prev) => ({
+      ...prev,
+      [stepId]: status,
+    }))
+
+    stepStatusMutation.mutate({ stepId, status })
   }
 
   return (
@@ -177,8 +281,10 @@ function RouteComponent() {
           <RequestInfoCard
             name={requestInfo.name}
             nameLabel="이름"
-            requestedAt={formatToYmd(requestInfo.createdAt)}
-            email=""
+            requestedAt={
+              requestInfo.createdAt ? formatToYmd(requestInfo.createdAt) : '-'
+            }
+            email={requestInfo.email}
             phoneNumber={formatPhone(requestInfo.phoneNumber)}
           />
 
@@ -190,6 +296,7 @@ function RouteComponent() {
                 value={businessLicenseFile}
                 label="사업자등록증"
                 required
+                fileUrl={displayedBusinessLicenseFileUrl}
                 onChange={updateFile(setBusinessLicenseFile)}
                 onDragChange={updateDragging(setBusinessLicenseFile)}
               />
@@ -198,6 +305,7 @@ function RouteComponent() {
                 value={bankbookCopyFile}
                 label="통장 사본"
                 required
+                fileUrl={displayedBankbookCopyFileUrl}
                 onChange={updateFile(setBankbookCopyFile)}
                 onDragChange={updateDragging(setBankbookCopyFile)}
               />
@@ -243,7 +351,8 @@ function RouteComponent() {
           <div className="flex justify-end">
             <button
               type="button"
-              className="h-11 rounded-[10px] bg-app-primary px-6 text-14 font-medium text-app-black"
+              disabled={documentsMutation.isPending}
+              className="h-11 rounded-[10px] bg-app-primary px-6 text-14 font-medium text-app-black disabled:opacity-50"
               onClick={handleSubmit}
             >
               저장하기
@@ -258,12 +367,7 @@ function RouteComponent() {
           title={activeStepItem.title}
           status={stepStatuses[activeStepId]}
           onClose={() => setActiveStepId(null)}
-          onStatusChange={(status) => {
-            setStepStatuses((prev) => ({
-              ...prev,
-              [activeStepId]: status,
-            }))
-          }}
+          onStatusChange={handleStepStatusChange}
         />
       )}
     </>

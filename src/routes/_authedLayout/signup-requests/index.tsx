@@ -1,13 +1,12 @@
 import {
-  fetchApprovedUserInfo,
-  fetchApprovedUserList,
-} from '#/apis/api/approvals/approvals'
+  fetchApprovedUserInfoQueryOptions,
+  fetchApprovedUserListQueryOptions,
+} from '#/apis/api/approvals/approvalsQueryOptions'
 import type { SignUpRequestListDTO } from '#/apis/api/approvals/approvals.dto'
 import FilterChipTabs from '#/components/FilterChipTabs'
 import SearchBar from '#/components/SearchBar'
 import { formatPhone, formatToYmd } from '#/utils/format'
 import {
-  queryOptions,
   useQueryClient,
   useSuspenseQuery,
 } from '@tanstack/react-query'
@@ -19,20 +18,6 @@ import RequestCard, {
   type SignupRequest,
   type StepStatus,
 } from './-components/RequestCard'
-
-const fetchApprovedUserListQueryOptions = () =>
-  queryOptions({
-    queryKey: ['approved'],
-    queryFn: async () => fetchApprovedUserList(),
-    select: (res) => res.data as SignUpRequestListDTO[],
-  })
-
-const fetchApprovedUserInfoQueryOptions = (approvalId: number) =>
-  queryOptions({
-    queryKey: ['approved', approvalId],
-    queryFn: async () => fetchApprovedUserInfo(approvalId),
-    select: (res) => res.data as SignUpRequestListDTO,
-  })
 
 export const Route = createFileRoute('/_authedLayout/signup-requests/')({
   loader: ({ context }) =>

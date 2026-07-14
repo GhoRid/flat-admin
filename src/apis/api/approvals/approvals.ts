@@ -1,12 +1,19 @@
 import { appInstance } from '#/apis'
-import type { branchInfoDTO, STEP } from './approvals.dto'
+import type {
+  branchInfoDTO,
+  SignUpRequestDetailDTO,
+  SignUpRequestListDTO,
+  STEP,
+} from './approvals.dto'
 
 export const fetchApprovedUserList = async () => {
-  return await appInstance.get('/admin/user-approvals')
+  return await appInstance.get<SignUpRequestListDTO[]>('/admin/user-approvals')
 }
 
 export const fetchApprovedUserInfo = async (approvalId: number) => {
-  return await appInstance.get(`/admin/user-approvals/${approvalId}`)
+  return await appInstance.get<SignUpRequestDetailDTO>(
+    `/admin/user-approvals/${approvalId}`,
+  )
 }
 
 // 토스플레이스 상태 수정

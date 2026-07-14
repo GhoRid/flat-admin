@@ -3,6 +3,7 @@ export type StepStatus = 'before' | 'progress' | 'done'
 type StatusSelectorProps = {
   value: StepStatus
   onChange: (status: StepStatus) => void
+  disabledOptions?: StepStatus[]
 }
 
 const STATUS_OPTIONS: Array<{
@@ -32,6 +33,7 @@ const ACTIVE_STATUS_CLASS: Record<StepStatus, string> = {
 export default function StatusSelector({
   value,
   onChange,
+  disabledOptions = [],
 }: StatusSelectorProps) {
   return (
     <div className="flex flex-col gap-3">
@@ -40,17 +42,20 @@ export default function StatusSelector({
       <div className="flex gap-2">
         {STATUS_OPTIONS.map((option) => {
           const isActive = value === option.value
+          const isDisabled = disabledOptions.includes(option.value)
 
           return (
             <button
               key={option.value}
               type="button"
               onClick={() => onChange(option.value)}
+              disabled={isDisabled}
               className={[
                 'h-9 rounded-[10px] border px-4 text-15 font-medium transition-colors',
                 isActive
                   ? ACTIVE_STATUS_CLASS[option.value]
                   : 'border-app-gray100 bg-white text-app-gray300',
+                isDisabled ? 'cursor-not-allowed opacity-40' : '',
               ].join(' ')}
             >
               {option.label}
